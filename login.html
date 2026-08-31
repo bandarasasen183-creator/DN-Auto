@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — DN Auto Repairs & Imports</title>
+  <link rel="icon" href="assets/img/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/main.css" />
+</head>
+<body class="page-fade">
+  <header class="header"><div class="wrap nav">
+    <a href="index.html" class="logo"><img src="assets/img/logo.png" alt="DN Auto logo" /><span><strong>DN AUTO</strong><small>REPAIRS &amp; IMPORTS</small></span></a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="services.html">Services</a>
+      <a href="booking.html">Book a service</a>
+      <a href="contact.html">Contact us</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn orange small" href="booking.html">Book now ↗</a>
+    </div>
+    <button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+  </div></header>
+
+  <main>
+    <div class="auth-shell" data-reveal>
+      <div style="text-align:center;margin-bottom:24px">
+        <img src="assets/img/logo.png" alt="" style="width:56px;height:56px;border-radius:14px;margin:0 auto 12px" />
+        <h1 style="font-size:26px">Customer portal</h1>
+        <p style="color:var(--muted);font-size:13px;margin:6px 0 0">Track bookings, approve quotes, and see your repair history.</p>
+      </div>
+      <div class="auth-tabs">
+        <button class="active" data-auth="login">Login</button>
+        <button data-auth="signup">Sign up</button>
+      </div>
+      <form id="auth-form">
+        <label class="field" data-auth-only="signup" hidden>Full name *<input type="text" name="name" placeholder="e.g. Anushka Perera" /></label>
+        <label class="field">Phone or email *<input type="text" name="identity" placeholder="+94 7X XXX XXXX" required /></label>
+        <label class="field">Password *<input type="password" name="password" placeholder="••••••••" required /></label>
+        <label class="field" data-auth-only="signup" hidden>Vehicle name and model<input type="text" name="vehicle" placeholder="e.g. Toyota Aqua 2016" /></label>
+        <button type="submit" class="btn orange block" id="auth-submit">Log in to your portal ↗</button>
+      </form>
+      <p class="auth-note">Demo mode — any details open the portal preview.<br />Real accounts arrive with the production launch.</p>
+      <div style="border-top:1px solid var(--line);margin-top:22px;padding-top:18px;display:flex;gap:10px;justify-content:center;font-size:12px;color:var(--muted)">
+        <a href="worker.html" style="font-weight:700;color:var(--ink)">Worker portal →</a> ·
+        <a href="admin.html" style="font-weight:700;color:var(--ink)">Admin portal →</a>
+      </div>
+    </div>
+  </main>
+
+  <script src="assets/js/main.js"></script>
+  <script>
+    (function () {
+      const tabs = document.querySelectorAll("[data-auth]");
+      const submit = document.getElementById("auth-submit");
+      let mode = "login";
+      tabs.forEach((tab) => tab.addEventListener("click", () => {
+        mode = tab.dataset.auth;
+        tabs.forEach((t) => t.classList.toggle("active", t === tab));
+        document.querySelectorAll("[data-auth-only]").forEach((el) => { el.hidden = el.dataset.authOnly !== mode; });
+        submit.textContent = mode === "login" ? "Log in to your portal ↗" : "Create your account ↗";
+      }));
+      document.getElementById("auth-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        document.body.classList.add("page-leaving");
+        setTimeout(() => { window.location.href = "portal.html"; }, 240);
+      });
+    })();
+  </script>
+</body>
+</html>

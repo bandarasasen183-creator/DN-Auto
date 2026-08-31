@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customer portal — DN Auto</title>
+  <link rel="icon" href="assets/img/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/main.css" />
+</head>
+<body class="page-fade portal-body">
+  <header class="header"><div class="wrap nav">
+    <a href="index.html" class="logo"><img src="assets/img/logo.png" alt="DN Auto logo" /><span><strong>DN AUTO</strong><small>CUSTOMER PORTAL</small></span></a>
+    <nav>
+      <a href="index.html">Back to site</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn orange small" href="booking.html">New booking ↗</a>
+      <a class="btn ghost small" href="login.html">Log out</a>
+    </div>
+    <button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+  </div></header>
+
+  <div class="portal-layout">
+    <aside class="portal-side">
+      <span class="side-label">CUSTOMER</span>
+      <a href="portal.html" class="active">🏠 Overview</a>
+      <a href="booking.html">🔧 New booking</a>
+      <a href="contact.html#support">🛟 Support</a>
+      <a href="contact.html#feedback">⭐ Feedback</a>
+      <span class="side-label">OTHER PORTALS</span>
+      <a href="worker.html">👷 Worker portal</a>
+      <a href="admin.html">🗂 Admin portal</a>
+    </aside>
+
+    <main class="portal-main">
+      <h1>Good day! Here's your car's story.</h1>
+      <p class="sub">Demo preview — in production this shows your real bookings, quotes and repair history.</p>
+
+      <div class="stat-row">
+        <div class="stat" data-reveal><small>Next visit</small><strong id="stat-next">—</strong><em id="stat-next-note"></em></div>
+        <div class="stat" data-reveal><small>Active requests</small><strong id="stat-active">0</strong><em>awaiting confirmation</em></div>
+        <div class="stat" data-reveal><small>Warranty</small><strong>6+ mo</strong><em>on every part we fit</em></div>
+        <div class="stat" data-reveal><small>Payments</small><strong>At workshop</strong><em>WEBXPAY &amp; Koko coming</em></div>
+      </div>
+
+      <div class="table-card" data-reveal>
+        <header><h3>Your booking requests</h3><a class="btn small orange" href="booking.html">＋ New booking</a></header>
+        <div id="booking-rows"></div>
+      </div>
+
+      <div class="table-card" data-reveal>
+        <header><h3>Repair history</h3></header>
+        <div class="trow"><small>DN-0988</small><span><b>Brake inspection</b><br /><small>Honda Fit · pads replaced</small></span><span class="pill green">Completed</span><small>Aug 2026</small></div>
+        <div class="trow"><small>DN-0871</small><span><b>General service</b><br /><small>Honda Fit · oil, filters, fluids</small></span><span class="pill green">Completed</span><small>May 2026</small></div>
+        <div class="trow"><small>DN-0715</small><span><b>Engine diagnostics</b><br /><small>Honda Fit · O2 sensor replaced</small></span><span class="pill green">Completed</span><small>Jan 2026</small></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/js/main.js"></script>
+  <script>
+    (function () {
+      let bookings = [];
+      try { bookings = JSON.parse(localStorage.getItem("dn-bookings") || "[]"); } catch {}
+      const rows = document.getElementById("booking-rows");
+      if (!bookings.length) {
+        rows.innerHTML = '<div class="trow"><small>—</small><span><b>No booking requests yet</b><br /><small>Make one and it appears here instantly.</small></span><span class="pill grey">Empty</span><small></small></div>';
+      } else {
+        [...bookings].reverse().forEach((b) => {
+          const row = document.createElement("div");
+          row.className = "trow";
+          row.innerHTML = `<small></small><span><b></b><br /><small></small></span><span class="pill amber"></span><small></small>`;
+          row.children[0].textContent = b.id;
+          row.querySelector("b").textContent = b.service;
+          row.querySelector("span small").textContent = `${b.vehicle} · ${b.slot}`;
+          row.children[2].textContent = b.status;
+          row.children[3].textContent = new Date(b.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+          rows.appendChild(row);
+        });
+        const next = bookings[bookings.length - 1];
+        document.getElementById("stat-next").textContent = new Date(next.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+        document.getElementById("stat-next-note").textContent = next.slot + " · " + next.service;
+      }
+      document.getElementById("stat-active").textContent = bookings.length;
+      if (!bookings.length) {
+        document.getElementById("stat-next").textContent = "Book one";
+        document.getElementById("stat-next-note").textContent = "takes two minutes";
+      }
+    })();
+  </script>
+</body>
+</html>

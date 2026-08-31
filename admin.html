@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin portal — DN Auto</title>
+  <link rel="icon" href="assets/img/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/main.css" />
+</head>
+<body class="page-fade portal-body">
+  <header class="header"><div class="wrap nav">
+    <a href="index.html" class="logo"><img src="assets/img/logo.png" alt="DN Auto logo" /><span><strong>DN AUTO</strong><small>ADMIN PORTAL</small></span></a>
+    <nav><a href="index.html">Back to site</a></nav>
+    <div class="nav-actions"><a class="btn ghost small" href="login.html">Log out</a></div>
+    <button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+  </div></header>
+
+  <div class="portal-layout">
+    <aside class="portal-side">
+      <span class="side-label">OPERATIONS</span>
+      <a href="admin.html" class="active">📊 Overview</a>
+      <a href="admin.html">📅 Bookings</a>
+      <a href="admin.html">👥 Customers</a>
+      <a href="admin.html">👷 Workers</a>
+      <span class="side-label">BUSINESS</span>
+      <a href="admin.html">🧾 Services &amp; prices</a>
+      <a href="admin.html">💳 Payments</a>
+      <a href="admin.html">📈 Reports</a>
+      <span class="side-label">OTHER PORTALS</span>
+      <a href="portal.html">👤 Customer portal</a>
+      <a href="worker.html">👷 Worker portal</a>
+    </aside>
+
+    <main class="portal-main">
+      <h1>DN Auto operations</h1>
+      <p class="sub">Demo preview — the control centre for bookings, workers, pricing and payments.</p>
+
+      <div class="stat-row">
+        <div class="stat" data-reveal><small>Bookings this week</small><strong>12</strong><em>+3 vs last week</em></div>
+        <div class="stat" data-reveal><small>Active jobs</small><strong>07</strong><em>3 awaiting quotes</em></div>
+        <div class="stat" data-reveal><small>Month revenue</small><strong>LKR 1.24M</strong><em>September to date</em></div>
+        <div class="stat" data-reveal><small>Payments</small><strong>Workshop</strong><em>WEBXPAY / Koko planned</em></div>
+      </div>
+
+      <div class="table-card" data-reveal>
+        <header><h3>Latest booking requests</h3><span class="pill amber">3 to assign</span></header>
+        <div class="trow"><small>DN-1044</small><span><b>Brake check</b><br /><small>Suzuki Wagon R · S. Fernando</small></span><span class="pill amber">Unassigned</span><small>Sun 11:00 AM</small></div>
+        <div class="trow"><small>DN-1043</small><span><b>Engine diagnostics</b><br /><small>Toyota Aqua · R. Perera</small></span><span class="pill amber">Unassigned</span><small>Sun 9:00 AM</small></div>
+        <div class="trow"><small>DN-1042</small><span><b>Engine diagnostics</b><br /><small>Honda Fit · A. Mendis</small></span><span class="pill blue">Assigned · Bay 02</span><small>Today</small></div>
+        <div class="trow"><small>DN-1041</small><span><b>Battery check</b><br /><small>Toyota Aqua · K. Silva</small></span><span class="pill grey">Awaiting quote</span><small>Today</small></div>
+      </div>
+
+      <div class="table-card" data-reveal>
+        <header><h3>Services &amp; guide prices (LKR)</h3><span class="pill grey">Editable in production</span></header>
+        <div class="trow"><small>SV-01</small><span><b>General service</b><br /><small>Multi-point check &amp; servicing</small></span><span class="pill green">Active</span><small>from 7,500</small></div>
+        <div class="trow"><small>SV-02</small><span><b>Oil &amp; filter change</b><br /><small>Incl. genuine filter</small></span><span class="pill green">Active</span><small>from 5,900</small></div>
+        <div class="trow"><small>SV-03</small><span><b>Brake check</b><br /><small>Pads, discs, fluid</small></span><span class="pill green">Active</span><small>from 4,500</small></div>
+        <div class="trow"><small>SV-04</small><span><b>Engine diagnostics</b><br /><small>Scan + fault report</small></span><span class="pill green">Active</span><small>from 6,000</small></div>
+        <div class="trow"><small>SV-05</small><span><b>Suspension / wheel check</b><br /><small>Clunks, knocks, vibration</small></span><span class="pill green">Active</span><small>from 5,000</small></div>
+      </div>
+
+      <div class="table-card" data-reveal>
+        <header><h3>Team</h3></header>
+        <div class="trow"><small>W-01</small><span><b>Nimal</b><br /><small>Senior technician</small></span><span class="pill green">On shift</span><small>Bay 01</small></div>
+        <div class="trow"><small>W-02</small><span><b>Kasun</b><br /><small>Technician</small></span><span class="pill green">On shift</span><small>Bay 03</small></div>
+        <div class="trow"><small>W-03</small><span><b>Amila</b><br /><small>Technician</small></span><span class="pill grey">Off today</span><small>—</small></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

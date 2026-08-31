@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Worker portal — DN Auto</title>
+  <link rel="icon" href="assets/img/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/main.css" />
+</head>
+<body class="page-fade portal-body">
+  <header class="header"><div class="wrap nav">
+    <a href="index.html" class="logo"><img src="assets/img/logo.png" alt="DN Auto logo" /><span><strong>DN AUTO</strong><small>WORKER PORTAL</small></span></a>
+    <nav><a href="index.html">Back to site</a></nav>
+    <div class="nav-actions"><a class="btn ghost small" href="login.html">Log out</a></div>
+    <button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+  </div></header>
+
+  <div class="portal-layout">
+    <aside class="portal-side">
+      <span class="side-label">WORKSHOP</span>
+      <a href="worker.html" class="active">🧰 My board</a>
+      <a href="worker.html">📥 Incoming bookings</a>
+      <a href="worker.html">🏗 Bays</a>
+      <span class="side-label">PAY</span>
+      <a href="worker.html">💰 Pay summary</a>
+      <a href="worker.html">🧾 Payslips</a>
+      <span class="side-label">OTHER PORTALS</span>
+      <a href="portal.html">👤 Customer portal</a>
+      <a href="admin.html">🗂 Admin portal</a>
+    </aside>
+
+    <main class="portal-main">
+      <h1>Your workshop board</h1>
+      <p class="sub">Demo preview — accept bookings, track bays and see your pay. Live data arrives with the production launch.</p>
+
+      <div class="stat-row">
+        <div class="stat" data-reveal><small>Today's jobs</small><strong>04</strong><em>2 awaiting acceptance</em></div>
+        <div class="stat" data-reveal><small>Active bays</small><strong>03</strong><em>of 4 in use</em></div>
+        <div class="stat" data-reveal><small>Pay period</small><strong>Sep</strong><em>closes in 6 days</em></div>
+        <div class="stat" data-reveal><small>Month pay</small><strong>LKR 86,400</strong><em>incl. overtime</em></div>
+      </div>
+
+      <div class="table-card" data-reveal>
+        <header><h3>Incoming bookings</h3><span class="pill amber">2 to accept</span></header>
+        <div class="trow"><small>DN-1043</small><span><b>Engine diagnostics</b><br /><small>Toyota Aqua · Sun 9:00 AM</small></span><span class="pill amber">Awaiting</span><button class="btn small orange" data-accept>Accept</button></div>
+        <div class="trow"><small>DN-1044</small><span><b>Brake check</b><br /><small>Suzuki Wagon R · Sun 11:00 AM</small></span><span class="pill amber">Awaiting</span><button class="btn small orange" data-accept>Accept</button></div>
+      </div>
+
+      <div class="table-card" data-reveal>
+        <header><h3>Today's bays</h3></header>
+        <div class="trow"><small>BAY 01</small><span><b>Suzuki Wagon R · General service</b><br /><small>Started 8:20 AM</small></span><span class="pill blue">Queued</span><small>Nimal</small></div>
+        <div class="trow"><small>BAY 02</small><span><b>Honda Fit · Engine diagnostics</b><br /><small>Fault codes read · quote sent</small></span><span class="pill amber">In progress</span><small>You</small></div>
+        <div class="trow"><small>BAY 03</small><span><b>Toyota Aqua · Brake check</b><br /><small>Awaiting customer approval</small></span><span class="pill grey">Paused</span><small>Kasun</small></div>
+        <div class="trow"><small>BAY 04</small><span><b>Suzuki Swift · Oil &amp; filter</b><br /><small>Ready for pickup</small></span><span class="pill green">Ready</span><small>You</small></div>
+      </div>
+
+      <div class="table-card" data-reveal>
+        <header><h3>Recent payslips</h3></header>
+        <div class="trow"><small>AUG 2026</small><span><b>Monthly payslip</b><br /><small>22 working days · 6 emergency callouts</small></span><span class="pill green">Paid</span><small>LKR 84,150</small></div>
+        <div class="trow"><small>JUL 2026</small><span><b>Monthly payslip</b><br /><small>23 working days · 4 emergency callouts</small></span><span class="pill green">Paid</span><small>LKR 82,900</small></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/js/main.js"></script>
+  <script>
+    document.querySelectorAll("[data-accept]").forEach((b) => b.addEventListener("click", () => {
+      const pill = b.parentElement.querySelector(".pill");
+      pill.textContent = "Accepted";
+      pill.className = "pill green";
+      b.remove();
+      window.dnToast("Booking accepted — added to your board (demo).");
+    }));
+  </script>
+</body>
+</html>

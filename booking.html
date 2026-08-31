@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Book a service — DN Auto Repairs & Imports</title>
+  <link rel="icon" href="assets/img/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/main.css" />
+</head>
+<body class="page-fade">
+  <header class="header"><div class="wrap nav">
+    <a href="index.html" class="logo"><img src="assets/img/logo.png" alt="DN Auto logo" /><span><strong>DN AUTO</strong><small>REPAIRS &amp; IMPORTS</small></span></a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="services.html">Services</a>
+      <a href="booking.html" class="active">Book a service</a>
+      <a href="contact.html">Contact us</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn ghost small" href="login.html">Login</a>
+    </div>
+    <button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+  </div></header>
+
+  <main>
+    <section class="page-hero" style="padding-bottom:8px"><div class="wrap">
+      <p class="kicker">Service booking</p>
+      <h1>Book your service<br /><em style="font-style:normal;color:#6d838c">in about two minutes.</em></h1>
+      <p>Tell us about you, your vehicle, and pick a slot. A service advisor will confirm the appointment and the plan before your visit.</p>
+    </div></section>
+
+    <div class="progress-shell"><div class="wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-steps">
+        <span data-pstep="1" class="done">1 · About you</span>
+        <span data-pstep="2">2 · Your vehicle</span>
+        <span data-pstep="3">3 · Service</span>
+        <span data-pstep="4">4 · Date &amp; time</span>
+        <span data-pstep="5">5 · Review</span>
+      </div>
+    </div></div>
+
+    <div class="wrap">
+      <form class="book-panel" id="booking-form" novalidate>
+
+        <section class="book-step active" data-step="1">
+          <h2>Are you a new or existing customer?</h2>
+          <p>Existing customers get access to weekday emergency repairs from 6 PM.</p>
+          <div class="choice-grid">
+            <button type="button" class="choice selected" data-choice="customerType" data-value="New customer"><span class="c-icon">👋</span><span><strong>I'm new here</strong><small>First visit to DN Auto</small></span></button>
+            <button type="button" class="choice" data-choice="customerType" data-value="Existing customer"><span class="c-icon">🤝</span><span><strong>Existing customer</strong><small>You've serviced with us before</small></span></button>
+          </div>
+          <label class="field">Your name *<input type="text" name="name" placeholder="e.g. Anushka Perera" required /></label>
+          <div class="field-row">
+            <label class="field">Phone number *<input type="tel" name="phone" placeholder="+94 7X XXX XXXX" required /></label>
+            <label class="field">Email<input type="email" name="email" placeholder="example@example.com" /><small>We'll send your confirmation here.</small></label>
+          </div>
+          <div class="book-nav"><span></span><button type="button" class="btn orange" data-next>Continue →</button></div>
+        </section>
+
+        <section class="book-step" data-step="2">
+          <h2>Tell us about the vehicle.</h2>
+          <p>Petrol vehicles only — we currently do not service diesel vehicles.</p>
+          <label class="field">Vehicle name and model *<input type="text" name="vehicle" placeholder="e.g. Toyota Aqua 2016" required /></label>
+          <label class="field">Vehicle registration number<input type="text" name="rego" placeholder="e.g. CAB-1234" /></label>
+          <label class="field">What are you noticing?<textarea name="symptoms" rows="3" placeholder="Warning lights, sounds, smells, when it happens…"></textarea><small>Anything helps — even “it just feels different lately”.</small></label>
+          <div class="book-nav"><button type="button" class="btn ghost" data-prev>← Back</button><button type="button" class="btn orange" data-next>Continue →</button></div>
+        </section>
+
+        <section class="book-step" data-step="3">
+          <h2>Select service type.</h2>
+          <p>Not sure? Pick Engine Diagnostics — we'll find the fault first.</p>
+          <div class="choice-grid" id="service-grid">
+            <button type="button" class="choice selected" data-choice="service" data-value="General Service"><span class="c-icon">🛠</span><span><strong>General Service</strong><small>Multi-point check &amp; servicing</small></span></button>
+            <button type="button" class="choice" data-choice="service" data-value="Oil &amp; Filter Change"><span class="c-icon">🛢</span><span><strong>Oil &amp; Filter Change</strong><small>Fresh oil, new filters</small></span></button>
+            <button type="button" class="choice" data-choice="service" data-value="Brake Check"><span class="c-icon">🛞</span><span><strong>Brake Check</strong><small>Pads, discs, fluid, safety</small></span></button>
+            <button type="button" class="choice" data-choice="service" data-value="Engine Diagnostics"><span class="c-icon">🔍</span><span><strong>Engine Diagnostics</strong><small>Warning lights, rough running</small></span></button>
+            <button type="button" class="choice" data-choice="service" data-value="Suspension or Wheel Check"><span class="c-icon">⚙️</span><span><strong>Suspension or Wheel Check</strong><small>Clunks, knocks, vibration</small></span></button>
+          </div>
+          <div class="book-nav"><button type="button" class="btn ghost" data-prev>← Back</button><button type="button" class="btn orange" data-next>Continue →</button></div>
+        </section>
+
+        <section class="book-step" data-step="4">
+          <h2>Pick a day and time.</h2>
+          <p>Sundays 8 AM – 5 PM are our main service hours (Asia/Colombo time).</p>
+          <label class="field">Appointment date *<input type="date" name="date" required /></label>
+          <span class="field" style="margin-bottom:6px">Available time slots *</span>
+          <div class="slot-grid" id="slot-grid"></div>
+          <label class="field">Additional notes or requests<textarea name="notes" rows="3" placeholder="Anything else we should know before your visit…"></textarea></label>
+          <div class="book-nav"><button type="button" class="btn ghost" data-prev>← Back</button><button type="button" class="btn orange" data-next>Review booking →</button></div>
+        </section>
+
+        <section class="book-step" data-step="5">
+          <h2>Review your booking.</h2>
+          <p>This is a booking request — we'll contact you to confirm availability and the repair plan.</p>
+          <div class="summary-box">
+            <div><span>Customer</span><b id="sum-name">—</b></div>
+            <div><span>Type</span><b id="sum-type">—</b></div>
+            <div><span>Phone</span><b id="sum-phone">—</b></div>
+            <div><span>Vehicle</span><b id="sum-vehicle">—</b></div>
+            <div><span>Service</span><b id="sum-service">—</b></div>
+            <div><span>Appointment</span><b id="sum-when">—</b></div>
+          </div>
+          <div class="book-nav"><button type="button" class="btn ghost" data-prev>← Back</button><button type="submit" class="btn orange">Submit booking ↗</button></div>
+        </section>
+
+        <section class="book-step" data-step="6">
+          <div class="book-success">
+            <div class="success-ring">✓</div>
+            <h2>Request received!</h2>
+            <p style="color:var(--muted);max-width:400px;margin:10px auto 24px">Thank you — your booking request is with the DN Auto team. We'll contact you to confirm your slot. <br /><small>(Demo mode: no real data is sent yet.)</small></p>
+            <div class="hero-cta" style="justify-content:center">
+              <a class="btn" href="index.html">Back to home</a>
+              <a class="btn ghost" href="login.html">Track it in the portal</a>
+            </div>
+          </div>
+        </section>
+      </form>
+    </div>
+  </main>
+
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/booking.js"></script>
+</body>
+</html>
