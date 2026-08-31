@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { signOut } from '@/app/(auth)/actions';
 import { BUSINESS } from '@/lib/business';
+import DnAssist from '@/components/assistant/DnAssist';
 
 /**
  * The frame every signed-in page sits in. Navigation is passed in per portal
@@ -67,6 +68,8 @@ export default function PortalShell({ profile, nav, current, title, subtitle, ac
         </header>
         {children}
       </main>
+
+      <DnAssist signedIn />
     </div>
   );
 }

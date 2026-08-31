@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getSessionUser, ROLE_HOME } from '@/lib/auth/session';
 import { BUSINESS, EXCLUSIONS, HOURS, formatLKR } from '@/lib/business';
 import Reveal from '@/components/Reveal';
+import DnAssist from '@/components/assistant/DnAssist';
 
 export default async function HomePage() {
   const supabase = createClient();
@@ -140,6 +141,8 @@ export default async function HomePage() {
           {BUSINESS.address.province}, {BUSINESS.address.country}
         </div>
       </footer>
+
+      <DnAssist signedIn={Boolean(session)} />
     </>
   );
 }
