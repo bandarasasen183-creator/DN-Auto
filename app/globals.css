@@ -405,3 +405,285 @@ a {
 .muted { color: var(--steel-400); }
 .small { font-size: 0.875rem; }
 .center { text-align: center; }
+
+/* =====================================================================
+   Booking wizard, timeline, tables — Phase 2
+   ===================================================================== */
+
+.wizard { max-width: 840px; }
+
+.wizard__panel {
+  margin-top: 2rem;
+  animation: rise var(--dur) var(--ease) both;
+}
+
+.wizard__nav {
+  justify-content: flex-end;
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--steel-100);
+}
+
+/* --- Progress bar ---------------------------------------------------- */
+.progress__rail {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--steel-100);
+  overflow: hidden;
+}
+
+.progress__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--amber-600), var(--amber-400));
+  transition: width var(--dur-slow) var(--ease);
+}
+
+.progress__steps {
+  display: flex;
+  justify-content: space-between;
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  gap: 0.5rem;
+}
+
+.progress__step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1;
+  text-align: center;
+}
+
+.progress__dot {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--steel-100);
+  color: var(--steel-400);
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+
+.progress__step[data-state='active'] .progress__dot {
+  background: var(--amber-500);
+  color: var(--ink-900);
+  transform: scale(1.12);
+  box-shadow: 0 0 0 4px rgb(245 165 36 / 0.2);
+}
+
+.progress__step[data-state='done'] .progress__dot {
+  background: var(--ok);
+  color: #fff;
+}
+
+.progress__label {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--steel-400);
+}
+
+.progress__step[data-state='active'] .progress__label {
+  color: var(--ink-800);
+  font-weight: 600;
+}
+
+@media (max-width: 560px) {
+  .progress__label { display: none; }
+}
+
+/* --- Selectable cards (service / vehicle pickers) --------------------- */
+.pick {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  align-items: flex-start;
+  text-align: left;
+  padding: 1rem;
+  border: 1px solid var(--steel-200);
+  border-radius: var(--r-md);
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+
+.pick:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+
+.pick[data-selected='true'] {
+  border-color: var(--amber-500);
+  box-shadow: 0 0 0 3px rgb(245 165 36 / 0.18);
+}
+
+.pick__price {
+  margin-top: auto;
+  padding-top: 0.5rem;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+}
+
+/* --- Time slots ------------------------------------------------------ */
+.slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.slot {
+  padding: 0.6rem 0.4rem;
+  border: 1px solid var(--steel-200);
+  border-radius: var(--r-sm);
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease);
+}
+
+.slot:hover { border-color: var(--amber-500); transform: translateY(-2px); }
+
+.slot[data-selected='true'] {
+  background: var(--ink-800);
+  border-color: var(--ink-800);
+  color: #fff;
+}
+
+/* --- Summary list ---------------------------------------------------- */
+.summary { margin: 0; display: grid; gap: 0.75rem; }
+.summary > div {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--steel-100);
+}
+.summary dt {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--steel-400);
+}
+.summary dd { margin: 0; }
+
+/* --- Success tick ---------------------------------------------------- */
+.tick {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgb(47 163 107 / 0.14);
+  color: var(--ok);
+  font-size: 2rem;
+  animation: pop var(--dur-slow) var(--ease) both;
+}
+
+@keyframes pop {
+  0%   { transform: scale(0.4); opacity: 0; }
+  60%  { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* --- Timeline -------------------------------------------------------- */
+.timeline { list-style: none; margin: 0; padding: 0 0 0 1.4rem; position: relative; }
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: var(--steel-100);
+}
+
+.timeline__item {
+  position: relative;
+  padding-bottom: 1.25rem;
+  animation: rise var(--dur) var(--ease) both;
+}
+
+.timeline__dot {
+  position: absolute;
+  left: -1.4rem;
+  top: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--steel-300);
+  box-shadow: 0 0 0 3px var(--paper);
+}
+
+.timeline__item[data-latest='true'] .timeline__dot {
+  background: var(--amber-500);
+  animation: pulse 2.4s var(--ease) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 3px var(--paper), 0 0 0 0 rgb(245 165 36 / 0.5); }
+  50%      { box-shadow: 0 0 0 3px var(--paper), 0 0 0 8px rgb(245 165 36 / 0); }
+}
+
+/* --- Tabs ------------------------------------------------------------ */
+.tabs {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: var(--r-sm);
+  background: var(--steel-100);
+}
+
+.tab {
+  padding: 0.5rem 1rem;
+  border-radius: var(--r-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--steel-400);
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.tab[data-active='true'] { background: #fff; color: var(--ink-800); box-shadow: var(--shadow-sm); }
+
+/* --- Tables ---------------------------------------------------------- */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.92rem;
+}
+
+.table th,
+.table td {
+  padding: 0.6rem 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid var(--steel-100);
+}
+
+.table thead th {
+  font-size: 0.72rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--steel-400);
+}
+
+.table tfoot th,
+.table tfoot td { border-bottom: 0; padding-top: 0.8rem; }
+
+.table .right { text-align: right; }
+
+/* Tables must never push the page sideways on a phone. */
+.table-wrap { overflow-x: auto; }
+
+@media (max-width: 820px) {
+  .grid[style*='2fr'] { grid-template-columns: 1fr !important; }
+}

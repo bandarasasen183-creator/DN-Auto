@@ -3,14 +3,10 @@ import { requireRole } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import { STATUS_LABELS, formatLKR } from '@/lib/business';
 
+import { WORKER_NAV } from './nav';
+
 export const metadata = { title: 'Workshop' };
 
-export const WORKER_NAV = [
-  { href: '/worker', label: 'My day', icon: '◆' },
-  { href: '/worker/incoming', label: 'Incoming jobs', icon: '⇄' },
-  { href: '/worker/jobs', label: 'My jobs', icon: '▤' },
-  { href: '/worker/pay', label: 'My pay', icon: '₨' },
-];
 
 export default async function WorkerHome() {
   const { profile } = await requireRole('worker', { from: '/worker' });

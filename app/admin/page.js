@@ -3,16 +3,10 @@ import { requireRole } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import { STATUS_LABELS, formatLKR } from '@/lib/business';
 
+import { ADMIN_NAV } from './nav';
+
 export const metadata = { title: 'Admin' };
 
-export const ADMIN_NAV = [
-  { href: '/admin', label: 'Dashboard', icon: '◆' },
-  { href: '/admin/bookings', label: 'Bookings', icon: '▤' },
-  { href: '/admin/customers', label: 'Customers', icon: '☺' },
-  { href: '/admin/workers', label: 'Workers', icon: '⛏' },
-  { href: '/admin/services', label: 'Services & prices', icon: '₨' },
-  { href: '/admin/payments', label: 'Payments', icon: '▣' },
-];
 
 export default async function AdminHome() {
   const { profile } = await requireRole('admin', { from: '/admin' });

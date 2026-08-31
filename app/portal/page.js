@@ -4,15 +4,10 @@ import { requireRole } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import { STATUS_LABELS, STATUS_FLOW, formatLKR } from '@/lib/business';
 
+import { CUSTOMER_NAV } from './nav';
+
 export const metadata = { title: 'Your portal' };
 
-export const CUSTOMER_NAV = [
-  { href: '/portal', label: 'Overview', icon: '◆' },
-  { href: '/portal/book', label: 'Book a service', icon: '＋' },
-  { href: '/portal/bookings', label: 'My bookings', icon: '▤' },
-  { href: '/portal/vehicles', label: 'My vehicles', icon: '⛭' },
-  { href: '/portal/quotes', label: 'Quotes', icon: '₨' },
-];
 
 function statusTone(status) {
   if (status === 'completed') return 'pill--ok';
