@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { signOut } from '@/app/(auth)/actions';
 import { BUSINESS } from '@/lib/business';
 import DnAssist from '@/components/assistant/DnAssist';
+import NotificationBell from '@/components/NotificationBell';
+import MobileNav from '@/components/MobileNav';
 
 /**
  * The frame every signed-in page sits in. Navigation is passed in per portal
@@ -10,6 +12,8 @@ import DnAssist from '@/components/assistant/DnAssist';
 export default function PortalShell({ profile, nav, current, title, subtitle, actions, children }) {
   return (
     <div className="shell">
+      <MobileNav nav={nav} current={current} profile={profile} />
+
       <nav className="shell__nav" aria-label="Portal navigation">
         <Link href="/" className="row" style={{ fontWeight: 700, letterSpacing: '0.08em', color: '#fff' }}>
           <span
@@ -64,7 +68,10 @@ export default function PortalShell({ profile, nav, current, title, subtitle, ac
             <h2 style={{ marginBottom: subtitle ? '0.2rem' : 0 }}>{title}</h2>
             {subtitle && <p className="muted" style={{ margin: 0 }}>{subtitle}</p>}
           </div>
-          {actions && <div className="row">{actions}</div>}
+          <div className="row">
+            <NotificationBell userId={profile.id} />
+            {actions}
+          </div>
         </header>
         {children}
       </main>

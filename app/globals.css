@@ -934,3 +934,187 @@ a {
   0%, 100% { box-shadow: 0 0 0 0 rgb(214 69 69 / 0.5); }
   50%      { box-shadow: 0 0 0 18px rgb(214 69 69 / 0); }
 }
+
+/* =====================================================================
+   Polish — Phase 7: loaders, notifications, mobile navigation
+   ===================================================================== */
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --- Page loader ----------------------------------------------------- */
+.page-loader {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 80;
+  height: 3px;
+  background: var(--steel-100);
+  overflow: hidden;
+}
+
+.page-loader__bar {
+  height: 100%;
+  width: 40%;
+  background: linear-gradient(90deg, var(--amber-600), var(--amber-400));
+  animation: sweep 1.1s var(--ease) infinite;
+}
+
+@keyframes sweep {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(350%); }
+}
+
+/* --- Notification bell ----------------------------------------------- */
+.bell {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--steel-200);
+  border-radius: var(--r-sm);
+  background: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.bell:hover { border-color: var(--amber-500); transform: translateY(-2px); }
+
+.bell__count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--bad);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  animation: pop var(--dur) var(--ease) both;
+}
+
+.bell__panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 50;
+  width: min(320px, calc(100vw - 3rem));
+  padding: 0.75rem;
+  border-radius: var(--r-md);
+  background: #fff;
+  border: 1px solid var(--steel-100);
+  box-shadow: var(--shadow-lg);
+  display: grid;
+  gap: 0.4rem;
+  animation: rise var(--dur) var(--ease) both;
+}
+
+.bell__item {
+  display: grid;
+  gap: 0.15rem;
+  text-align: left;
+  padding: 0.55rem 0.65rem;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--paper);
+  font: inherit;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease);
+}
+.bell__item:hover { background: var(--steel-100); }
+
+/* --- Mobile navigation ----------------------------------------------- */
+.mobilebar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--ink-900);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.mobilebar__toggle {
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 0 0.25rem;
+}
+
+.mobilebar .muted { margin-left: auto; color: var(--steel-400); }
+
+/* The sidebar carries the navigation on desktop, so the bar disappears. */
+@media (min-width: 960px) {
+  .mobilebar { display: none; }
+}
+
+@media (max-width: 959px) {
+  .shell__nav { display: none; }
+}
+
+.drawer { position: fixed; inset: 0; z-index: 70; }
+
+.drawer__scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: rgb(11 14 19 / 0.55);
+  cursor: pointer;
+  animation: fade var(--dur) var(--ease) both;
+}
+
+.drawer__panel {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: min(280px, 82vw);
+  padding: 1.25rem 1rem;
+  background: var(--ink-900);
+  color: var(--steel-200);
+  box-shadow: var(--shadow-lg);
+  animation: slide-in var(--dur) var(--ease) both;
+}
+
+@keyframes slide-in {
+  from { transform: translateX(-100%); }
+  to   { transform: none; }
+}
+
+.drawer__close {
+  border: 0;
+  background: transparent;
+  color: var(--steel-300);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+/* --- Focus visibility ------------------------------------------------ */
+:focus-visible {
+  outline: 2px solid var(--amber-500);
+  outline-offset: 2px;
+}
+
+/* --- Print: a quote or payslip should print cleanly ------------------- */
+@media print {
+  .shell__nav,
+  .mobilebar,
+  .assist,
+  .assist__launcher,
+  .btn { display: none !important; }
+
+  .shell { grid-template-columns: 1fr; }
+  .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+}
