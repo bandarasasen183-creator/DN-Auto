@@ -44,21 +44,20 @@ app/
   portal/               customer portal   (role: customer)
   worker/               worker portal     (role: worker)
   admin/                admin portal      (role: admin)
-components/             shared UI (portal shell, scroll reveal)
+  api/assistant/        DN Assist chat + history endpoints
+  auth/callback/        Supabase email-confirmation landing
+components/             portal shell, wizard progress bar, timeline, DN Assist
 lib/
   business.js           real-world facts + rules: hours, scope, LKR formatting
   supabase/             browser and server clients
   auth/session.js       getSessionUser() and the requireRole() guard
+  assistant/prompt.js   the assistant's brief, generated from business.js
+  payments/             provider-agnostic gateway adapters
+  domains.js            subdomain -> portal map
 middleware.js           session refresh, role routing, subdomain mapping
 supabase/
   schema.sql            tables, triggers, row-level security
   seed.sql              service catalogue with LKR guide prices
-  api/assistant/        DN Assist chat + history endpoints
-  auth/callback/        Supabase email-confirmation landing
-lib/
-  assistant/prompt.js   the assistant's brief, generated from business.js
-  payments/             provider-agnostic gateway adapters
-  domains.js            subdomain -> portal map
 legacy/                 the original static prototype, kept for reference
 ```
 
