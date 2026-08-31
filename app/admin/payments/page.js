@@ -3,6 +3,7 @@ import { requireRole } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import { ADMIN_NAV } from '../nav';
 import { formatLKR } from '@/lib/business';
+import { allProviders } from '@/lib/payments';
 import RecordPayment from './RecordPayment';
 
 export const metadata = { title: 'Payments' };
@@ -98,7 +99,30 @@ export default async function AdminPayments() {
           )}
         </section>
 
-        <RecordPayment bookings={openBookings ?? []} />
+        <div className="stack" style={{ '--gap': '1.5rem' }}>
+          <RecordPayment bookings={openBookings ?? []} />
+
+          <section className="card rise rise-2">
+            <h3>Payment methods</h3>
+            <p className="small muted">
+              The app is built so a gateway is one adapter file. Nothing changes in the
+              portals when a merchant account goes live.
+            </p>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: '0.75rem' }}>
+              {allProviders().map((p) => (
+                <li key={p.key}>
+                  <div className="row" style={{ justifyContent: 'space-between' }}>
+                    <strong className="small">{p.label}</strong>
+                    <span className={`pill ${p.configured ? 'pill--ok' : 'pill--warn'}`}>
+                      {p.configured ? 'Ready' : 'Not configured'}
+                    </span>
+                  </div>
+                  <p className="small muted" style={{ margin: 0 }}>{p.note}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
       </div>
     </PortalShell>
   );
