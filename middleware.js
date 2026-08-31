@@ -1,19 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
-
-/**
- * Which portal each subdomain serves. When the site later runs on
- * customer.dnauto.lk / workers.dnauto.lk / admin.dnauto.lk, a request to the
- * bare path is rewritten into that portal's route group. `admin.dnauto.lk`
- * (no `portal.`) resolves here too, which covers the redirect we promised.
- */
-const SUBDOMAIN_PORTALS = {
-  customer: '/portal',
-  customers: '/portal',
-  worker: '/worker',
-  workers: '/worker',
-  admin: '/admin',
-};
+import { portalForHost } from '@/lib/domains';
 
 const PROTECTED = [
   { prefix: '/portal', roles: ['customer'] },
@@ -22,12 +9,6 @@ const PROTECTED = [
 ];
 
 const ROLE_HOME = { customer: '/portal', worker: '/worker', admin: '/admin' };
-
-function portalForHost(host) {
-  if (!host) return null;
-  const label = host.split(':')[0].split('.')[0].toLowerCase();
-  return SUBDOMAIN_PORTALS[label] ?? null;
-}
 
 export async function middleware(request) {
   let response = NextResponse.next({ request });

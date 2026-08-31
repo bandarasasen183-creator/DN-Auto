@@ -53,6 +53,12 @@ middleware.js           session refresh, role routing, subdomain mapping
 supabase/
   schema.sql            tables, triggers, row-level security
   seed.sql              service catalogue with LKR guide prices
+  api/assistant/        DN Assist chat + history endpoints
+  auth/callback/        Supabase email-confirmation landing
+lib/
+  assistant/prompt.js   the assistant's brief, generated from business.js
+  payments/             provider-agnostic gateway adapters
+  domains.js            subdomain -> portal map
 legacy/                 the original static prototype, kept for reference
 ```
 
@@ -105,11 +111,18 @@ provider is an adapter rather than a schema change.
 
 ## Roadmap
 
+All eight phases are complete.
+
 - [x] **Phase 1** — Next.js + Supabase foundation, schema + RLS, real auth, role routing
-- [ ] **Phase 2** — Customer portal: booking wizard, bookings, quotes, repair log
-- [ ] **Phase 3** — Worker portal: incoming jobs, accept/update, pay & payslips
-- [ ] **Phase 4** — Admin portal: bookings, customers, workers, prices, reports
-- [ ] **Phase 5** — DN Assist: chat, voice, forms, history
-- [ ] **Phase 6** — Payments: WEBXPAY / Koko / Payable adapters
-- [ ] **Phase 7** — Design & animation polish
-- [ ] **Phase 8** — Subdomain deployment
+- [x] **Phase 2** — Customer portal: booking wizard, bookings, quotes, repair log
+- [x] **Phase 3** — Worker portal: incoming jobs, accept/update, pay & payslips
+- [x] **Phase 4** — Admin portal: bookings, customers, workers, prices, payments
+- [x] **Phase 5** — DN Assist: chat, voice, forms, history
+- [x] **Phase 6** — Payments: WEBXPAY / Koko / Payable adapter layer
+- [x] **Phase 7** — Design & animation polish
+- [x] **Phase 8** — Subdomain routing and deployment
+
+## Deploying
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) — Supabase setup, environment variables,
+DNS for the three portal subdomains, and the go-live checklist.
