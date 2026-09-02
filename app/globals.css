@@ -1118,3 +1118,419 @@ a {
   .shell { grid-template-columns: 1fr; }
   .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
 }
+
+/* =====================================================================
+   Public marketing site
+   ===================================================================== */
+
+.eyebrow {
+  margin: 0 0 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--amber-600);
+}
+
+.section { padding-block: clamp(3rem, 7vw, 5.5rem); }
+
+.section__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.band { background: #fff; border-block: 1px solid var(--steel-100); }
+
+.band--dark {
+  background:
+    radial-gradient(80% 60% at 90% 0%, rgb(245 165 36 / 0.12), transparent 60%),
+    linear-gradient(160deg, var(--ink-800), var(--ink-900));
+  color: var(--steel-200);
+  border: 0;
+}
+
+.band--dark .eyebrow { color: var(--amber-400); }
+
+.cols-2, .cols-3, .cols-4 { display: grid; gap: 1.5rem; }
+@media (min-width: 700px)  { .cols-2 { grid-template-columns: repeat(2, 1fr); }
+                             .cols-3 { grid-template-columns: repeat(2, 1fr); }
+                             .cols-4 { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1000px) { .cols-3 { grid-template-columns: repeat(3, 1fr); }
+                             .cols-4 { grid-template-columns: repeat(4, 1fr); } }
+
+/* --- Header ---------------------------------------------------------- */
+.sitehead {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgb(11 14 19 / 0.86);
+  backdrop-filter: blur(14px);
+  color: #fff;
+  transition: box-shadow var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.sitehead[data-scrolled='true'] {
+  background: rgb(11 14 19 / 0.97);
+  box-shadow: var(--shadow-md);
+}
+
+.sitehead__inner {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding-block: 0.9rem;
+}
+
+.sitehead__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  letter-spacing: 0.08em;
+  color: #fff;
+}
+
+.sitehead__mark {
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  border-radius: 9px;
+  background: var(--amber-500);
+  color: var(--ink-900);
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.sitehead__tag {
+  display: block;
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--steel-400);
+}
+
+.sitehead__nav { display: none; gap: 0.35rem; margin-left: auto; }
+@media (min-width: 900px) { .sitehead__nav { display: flex; } }
+
+.sitehead__link {
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--r-sm);
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--steel-300);
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+.sitehead__link:hover { color: #fff; background: var(--ink-700); }
+.sitehead__link[aria-current='page'] { color: var(--amber-400); }
+
+.sitehead__actions { display: flex; align-items: center; gap: 0.6rem; margin-left: auto; }
+@media (min-width: 900px) { .sitehead__actions { margin-left: 0; } }
+
+.sitehead__signin { display: none; color: var(--steel-200); }
+@media (min-width: 700px) { .sitehead__signin { display: inline-flex; } }
+
+.sitehead__burger {
+  display: inline-flex;
+  border: 0; background: transparent; color: #fff;
+  font-size: 1.3rem; cursor: pointer; padding: 0 0.25rem;
+}
+@media (min-width: 900px) { .sitehead__burger { display: none; } }
+
+.sitehead__drawer {
+  display: grid;
+  padding: 0.5rem 1.25rem 1.25rem;
+  border-top: 1px solid var(--ink-700);
+  animation: rise var(--dur) var(--ease) both;
+}
+@media (min-width: 900px) { .sitehead__drawer { display: none; } }
+
+.sitehead__drawerlink {
+  padding: 0.75rem 0.25rem;
+  border-bottom: 1px solid var(--ink-700);
+  color: var(--steel-200);
+  font-weight: 500;
+}
+.sitehead__drawerlink:hover { color: var(--amber-400); }
+
+/* --- Hero ------------------------------------------------------------ */
+.hero {
+  position: relative;
+  color: var(--steel-200);
+  background:
+    radial-gradient(90% 70% at 78% 0%, rgb(245 165 36 / 0.2), transparent 62%),
+    linear-gradient(165deg, var(--ink-800), var(--ink-900));
+  overflow: hidden;
+}
+
+/* A faint diagonal rule pattern — workshop floor markings. */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    115deg, transparent 0 38px, rgb(255 255 255 / 0.02) 38px 39px
+  );
+  pointer-events: none;
+}
+
+.hero__inner { position: relative; padding-block: clamp(3.5rem, 10vw, 7rem); }
+
+.hero__eyebrow {
+  margin: 0 0 0.6rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.26em;
+  color: var(--amber-400);
+}
+
+.hero h1 { color: #fff; max-width: 14ch; }
+
+.hero__lead { max-width: 56ch; color: var(--steel-300); font-size: 1.1rem; }
+
+.hero__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+  margin: 3rem 0 0;
+  padding-top: 2rem;
+  border-top: 1px solid var(--ink-600);
+}
+.hero__stats dt {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  color: var(--amber-400);
+  line-height: 1;
+}
+.hero__stats dd {
+  margin: 0.3rem 0 0;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--steel-400);
+}
+
+.hero__marquee {
+  position: relative;
+  overflow: hidden;
+  border-top: 1px solid var(--ink-600);
+  background: rgb(0 0 0 / 0.25);
+  padding-block: 0.75rem;
+}
+.hero__marqueeTrack {
+  display: flex;
+  width: max-content;
+  animation: marquee 38s linear infinite;
+}
+.hero__marqueeItem {
+  padding-inline: 1.6rem;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--steel-400);
+}
+.hero__marqueeItem::after { content: '·'; margin-left: 1.6rem; color: var(--amber-600); }
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__marqueeTrack { animation: none; }
+}
+
+/* --- Inner page header ----------------------------------------------- */
+.pagehead {
+  color: var(--steel-200);
+  background:
+    radial-gradient(70% 80% at 85% 0%, rgb(245 165 36 / 0.14), transparent 60%),
+    linear-gradient(165deg, var(--ink-800), var(--ink-900));
+  padding-block: clamp(2.5rem, 7vw, 4.5rem);
+}
+.pagehead h1 { color: #fff; max-width: 18ch; font-size: clamp(2rem, 5vw, 3.4rem); }
+
+/* --- Buttons: large + on-dark ---------------------------------------- */
+.btn--lg { padding: 1rem 1.9rem; font-size: 1.02rem; }
+.btn--onDark { color: var(--steel-100); box-shadow: inset 0 0 0 1px var(--ink-500); }
+.btn--onDark:hover { background: var(--ink-700); }
+
+/* --- Service cards ---------------------------------------------------- */
+.servicecard { display: flex; flex-direction: column; }
+.servicecard h3 { margin-top: 0.6rem; }
+.servicecard__foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: auto;
+  padding-top: 0.75rem;
+}
+.servicecard__price { font-family: var(--font-display); font-size: 1.45rem; }
+.servicecard__cta {
+  margin-top: 0.9rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--steel-100);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--amber-600);
+  transition: gap var(--dur-fast) var(--ease);
+}
+.servicecard__cta:hover { color: var(--ink-800); }
+
+/* --- Process --------------------------------------------------------- */
+.process {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1.25rem;
+}
+@media (min-width: 760px)  { .process { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1050px) { .process { grid-template-columns: repeat(5, 1fr); } }
+
+.process__item {
+  position: relative;
+  padding: 1.5rem 1.25rem 1.25rem;
+  border: 1px solid var(--steel-100);
+  border-radius: var(--r-md);
+  background: #fff;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.process__item:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+
+.process__num {
+  position: absolute;
+  top: -14px;
+  left: 1.25rem;
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--ink-900);
+  color: var(--amber-400);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+}
+
+/* --- Hours & scope lists --------------------------------------------- */
+.hourlist { list-style: none; margin: 1rem 0; padding: 0; display: grid; gap: 0.55rem; }
+.hourlist li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid var(--ink-600);
+  font-size: 0.92rem;
+}
+.hourlist li span:last-child { color: var(--amber-400); text-align: right; }
+.hourlist li[data-kind='closed'] span:last-child { color: var(--steel-400); }
+.hourlist--light li { border-bottom-color: var(--steel-100); }
+.hourlist--light li span:last-child { color: var(--amber-600); }
+.hourlist--light li[data-kind='closed'] span:last-child { color: var(--steel-400); }
+
+.scopelist { list-style: none; margin: 1rem 0; padding: 0; display: grid; gap: 0.5rem; }
+.scopelist li { display: flex; align-items: center; gap: 0.6rem; }
+.scopelist li span { color: var(--bad); font-weight: 700; }
+.scopelist--light li { color: var(--ink-700); }
+
+.ticklist { list-style: none; margin: 1.25rem 0 1.75rem; padding: 0; display: grid; gap: 0.6rem; }
+.ticklist li { position: relative; padding-left: 1.75rem; color: var(--steel-400); }
+.ticklist li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--ok);
+  font-weight: 700;
+}
+.band--dark .ticklist li, .container .ticklist li { color: inherit; }
+
+/* --- Portal mockup ---------------------------------------------------- */
+.mockup {
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--steel-200);
+  box-shadow: var(--shadow-lg);
+}
+.mockup__bar {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.75rem 1rem;
+  background: var(--ink-800);
+}
+.mockup__bar span {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--ink-500);
+}
+.mockup__bar span:first-child { background: var(--bad); }
+.mockup__body { padding: 1.5rem; }
+.mockup__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.35rem;
+}
+
+/* --- CTA band --------------------------------------------------------- */
+.cta {
+  background:
+    radial-gradient(60% 100% at 50% 0%, rgb(245 165 36 / 0.16), transparent 70%),
+    var(--ink-900);
+  padding-block: clamp(3rem, 8vw, 5rem);
+}
+
+/* --- Contact ---------------------------------------------------------- */
+.mapframe {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  border: 1px solid var(--steel-200);
+  box-shadow: var(--shadow-sm);
+}
+.mapframe iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+.contactlist { list-style: none; margin: 0 0 1rem; padding: 0; display: grid; gap: 0.75rem; }
+.contactlist li { display: grid; gap: 0.1rem; }
+.contactlist a { font-weight: 600; color: var(--amber-600); }
+.contactlist a:hover { text-decoration: underline; }
+
+/* --- Footer ----------------------------------------------------------- */
+.sitefoot { background: var(--ink-900); color: var(--steel-300); padding-top: 3.5rem; }
+
+.sitefoot__grid {
+  display: grid;
+  gap: 2rem;
+  padding-bottom: 2.5rem;
+}
+@media (min-width: 700px)  { .sitefoot__grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1000px) { .sitefoot__grid { grid-template-columns: 1.4fr 1fr 1fr 1fr; } }
+
+.sitefoot__h {
+  margin: 0 0 0.8rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.sitefoot__link { color: var(--amber-400); }
+.sitefoot__link:hover { text-decoration: underline; }
+
+.sitefoot__hours { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; }
+.sitefoot__hours li { display: flex; justify-content: space-between; gap: 0.75rem; color: var(--steel-400); }
+
+.sitefoot__links { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.45rem; }
+.sitefoot__links a { color: var(--steel-400); }
+.sitefoot__links a:hover { color: var(--amber-400); }
+
+.sitefoot__base {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding-block: 1.25rem;
+  border-top: 1px solid var(--ink-700);
+  color: var(--steel-400);
+}
+.sitefoot__scope { color: var(--ink-500); }
