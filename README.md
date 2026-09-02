@@ -20,7 +20,8 @@ npm run dev
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Open the SQL editor and run, in order:
-   `supabase/schema.sql` → `supabase/migrations/002_reviews_and_settings.sql` → `supabase/seed.sql`
+   `supabase/schema.sql`, then each file in `supabase/migrations/` by number,
+   then `supabase/seed.sql`.
 3. Copy the project URL and anon key into `.env.local`.
 
 ### Creating the first admin
@@ -101,6 +102,24 @@ Defined once in `lib/business.js` and validated server-side:
 `middleware.js` already maps `customer.` / `workers.` / `admin.` hosts to the
 right portal, so the three portals can be split across subdomains without a code
 change — only DNS and the host mapping table need updating.
+
+## Discounts
+
+Promotions live in the database and are managed at **Admin → Promotions** — no
+code change to run an offer. Four kinds of trigger:
+
+| Trigger | Behaviour |
+|---|---|
+| `first_booking` | Applies itself to a customer's first ever booking (this is the 5% welcome offer) |
+| `code` | The customer types a code |
+| `referral` | The code belongs to another customer, who is credited |
+| `always` | A seasonal offer applied to every booking while it runs |
+
+Percentages can be capped, offers can have a minimum spend, start and end
+dates, a total usage limit and a per-customer limit. Every application is
+written to `promotion_redemptions`, so what an offer has cost is a query
+rather than a guess. Eligibility is decided server-side in `lib/promotions.js`
+and re-checked inside the booking action — the wizard only previews it.
 
 ## Payments
 

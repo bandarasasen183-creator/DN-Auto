@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { STATUS_LABELS, STATUS_FLOW, formatLKR } from '@/lib/business';
 
 import { CUSTOMER_NAV } from './nav';
+import ReferralCard from '@/components/ReferralCard';
 
 export const metadata = { title: 'Your portal' };
 
@@ -20,7 +21,7 @@ export default async function CustomerHome() {
   const { profile } = await requireRole('customer', { from: '/portal' });
   const supabase = createClient();
 
-  const [{ data: bookings }, { data: quotes }] = await Promise.all([
+  const [{ data: bookings }, { data: quotes }, { data: me }] = await Promise.all([
     supabase
       .from('bookings')
       .select('id, reference, status, scheduled_for, services(name), vehicles(make, model, registration)')
@@ -31,6 +32,11 @@ export default async function CustomerHome() {
       .select('id, status, total_cents, bookings(reference)')
       .eq('status', 'sent')
       .limit(5),
+    supabase
+      .from('profiles')
+      .select('referral_code')
+      .eq('id', profile.id)
+      .maybeSingle(),
   ]);
 
   const rows = bookings ?? [];
@@ -72,7 +78,13 @@ export default async function CustomerHome() {
         </div>
       </section>
 
-      <section className="rise rise-2" style={{ marginTop: '2.5rem' }}>
+      {me?.referral_code && (
+        <div className="rise rise-2" style={{ marginTop: '2rem' }}>
+          <ReferralCard code={me.referral_code} />
+        </div>
+      )}
+
+      <section className="rise rise-3" style={{ marginTop: '2.5rem' }}>
         <h3>Recent bookings</h3>
         {rows.length === 0 ? (
           <div className="card center">
@@ -111,7 +123,7 @@ export default async function CustomerHome() {
       </section>
 
       {(quotes ?? []).length > 0 && (
-        <section className="rise rise-3" style={{ marginTop: '2.5rem' }}>
+        <section className="rise rise-4" style={{ marginTop: '2.5rem' }}>
           <h3>Quotes waiting for your approval</h3>
           <div className="grid" style={{ gap: '0.75rem' }}>
             {quotes.map((q) => (

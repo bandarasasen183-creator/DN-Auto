@@ -14,7 +14,7 @@ export default async function QuotesPage() {
   const { data: quotes } = await supabase
     .from('quotes')
     .select(`
-      id, status, subtotal_cents, tax_cents, total_cents, valid_until, notes, created_at,
+      id, status, subtotal_cents, tax_cents, discount_cents, total_cents, valid_until, notes, created_at,
       bookings(reference, services(name)),
       quote_items(id, description, kind, quantity, unit_price_cents, warranty_months)
     `)
@@ -70,6 +70,12 @@ export default async function QuotesPage() {
                 </tbody>
                 <tfoot>
                   <tr><td colSpan={3}>Subtotal</td><td className="right">{formatLKR(q.subtotal_cents)}</td></tr>
+                  {q.discount_cents > 0 && (
+                    <tr className="table__discount">
+                      <td colSpan={3}>Discount applied</td>
+                      <td className="right">−{formatLKR(q.discount_cents)}</td>
+                    </tr>
+                  )}
                   {q.tax_cents > 0 && (
                     <tr><td colSpan={3}>Tax</td><td className="right">{formatLKR(q.tax_cents)}</td></tr>
                   )}

@@ -1938,3 +1938,158 @@ a, button, .pick, .slot, .cal__day { touch-action: manipulation; }
   padding: 0.5rem 0;
 }
 .searchbar__input:focus { outline: none; }
+
+/* =====================================================================
+   Offers, discounts and referrals
+   ===================================================================== */
+
+.offer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1.15rem 1.25rem;
+  border-radius: var(--r-md);
+  border: 1px solid rgb(245 165 36 / 0.45);
+  background: linear-gradient(120deg, rgb(245 165 36 / 0.14), rgb(245 165 36 / 0.04));
+  overflow: hidden;
+  animation: offer-in 620ms var(--ease) both;
+}
+
+@keyframes offer-in {
+  0%   { opacity: 0; transform: translateY(14px) scale(0.96); }
+  55%  { opacity: 1; transform: translateY(-3px) scale(1.015); }
+  100% { opacity: 1; transform: none; }
+}
+
+/* A single light sweep across the panel as it lands, then it stays still. */
+.offer__burst {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.5) 50%, transparent 70%);
+  transform: translateX(-110%);
+  animation: offer-sweep 1.1s var(--ease) 260ms both;
+  pointer-events: none;
+}
+@keyframes offer-sweep { to { transform: translateX(110%); } }
+
+.offer__icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--amber-500);
+  color: var(--ink-900);
+  animation: offer-pop 640ms var(--ease) 120ms both;
+}
+.offer__icon .icon { fill: currentColor; }
+
+@keyframes offer-pop {
+  0%   { transform: scale(0.3) rotate(-25deg); opacity: 0; }
+  60%  { transform: scale(1.14) rotate(6deg); opacity: 1; }
+  100% { transform: none; }
+}
+
+.offer__value {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  line-height: 1.1;
+  color: var(--ink-900);
+}
+.offer__label { margin: 0; font-size: 0.9rem; color: var(--steel-400); }
+
+.offer__amount {
+  margin-left: auto;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--ok);
+}
+
+.offer--won { margin: 1.25rem 0; justify-content: center; text-align: left; }
+
+.summary__offer { color: var(--amber-600); font-weight: 600; }
+
+.codeentry { display: flex; gap: 0.5rem; }
+.codeentry .input { text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+
+.table__discount td { color: var(--ok); font-weight: 600; }
+
+/* --- Referral card ------------------------------------------------------- */
+.referral {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-radius: var(--r-lg);
+  background: linear-gradient(150deg, var(--ink-800), var(--ink-900));
+  overflow: hidden;
+}
+
+.referral__glow {
+  position: absolute;
+  top: -60%;
+  right: -10%;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(245 165 36 / 0.22), transparent 68%);
+  animation: drift 9s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes drift {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(-30px, 22px); }
+}
+
+.referral__code {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.6rem 0.6rem 1.1rem;
+  border: 1px dashed rgb(245 165 36 / 0.5);
+  border-radius: var(--r-md);
+  background: rgb(0 0 0 / 0.25);
+}
+.referral__code code {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: 0.16em;
+  color: var(--amber-400);
+}
+.referral__code .btn { color: var(--steel-200); }
+
+@media (prefers-reduced-motion: reduce) {
+  .offer, .offer__icon { animation: none; }
+  .offer__burst, .referral__glow { display: none; }
+}
+
+/* --- Public offers strip --------------------------------------------------- */
+.offerstrip {
+  background: linear-gradient(120deg, rgb(245 165 36 / 0.16), rgb(245 165 36 / 0.05));
+  border-bottom: 1px solid rgb(245 165 36 / 0.3);
+}
+
+.offerstrip__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+  padding-block: 1.25rem;
+}
+
+.offerstrip__item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: var(--ink-800);
+}
+.offerstrip__item .icon { color: var(--amber-600); fill: currentColor; }
+.offerstrip__item p { margin: 0; color: var(--steel-400); }
+.offerstrip .btn { margin-left: auto; }

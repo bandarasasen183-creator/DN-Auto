@@ -9,15 +9,22 @@ import DnAssist from '@/components/assistant/DnAssist';
 import AnnouncementBar from '@/components/AnnouncementBar';
 import Icon from '@/components/Icon';
 import Stars from '@/components/Stars';
+import { describeValue } from '@/lib/promotions';
 
 export default async function HomePage() {
   const supabase = createClient();
-  const [{ data: services }, { data: reviews }, session] = await Promise.all([
+  const [{ data: services }, { data: offers }, { data: reviews }, session] = await Promise.all([
     supabase
       .from('services')
       .select('id, slug, name, description, category, duration_minutes')
       .eq('is_active', true)
       .order('sort_order'),
+    supabase
+      .from('promotions')
+      .select('id, name, description, kind, value, trigger')
+      .eq('is_active', true)
+      .in('trigger', ['first_booking', 'always', 'code'])
+      .limit(3),
     supabase
       .from('reviews')
       .select('id, rating, body, reply, created_at, author:profiles!reviews_author_id_fkey(full_name)')
@@ -90,6 +97,23 @@ export default async function HomePage() {
       </section>
 
       <main>
+        {(offers ?? []).length > 0 && (
+          <section className="offerstrip">
+            <div className="container offerstrip__inner">
+              {offers.map((o) => (
+                <div key={o.id} className="offerstrip__item reveal">
+                  <Icon name="star" size={18} />
+                  <div>
+                    <strong>{describeValue(o)} — {o.name}</strong>
+                    {o.description && <p className="small">{o.description}</p>}
+                  </div>
+                </div>
+              ))}
+              <Link href={bookHref} className="btn">Claim it</Link>
+            </div>
+          </section>
+        )}
+
         {/* ---------------- Promises ---------------- */}
         <section className="container section">
           <p className="eyebrow reveal">Our standards</p>

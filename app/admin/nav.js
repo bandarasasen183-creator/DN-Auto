@@ -5,6 +5,7 @@ export const ADMIN_NAV = [
   { href: '/admin/customers', label: 'Customers', icon: 'users' },
   { href: '/admin/workers', label: 'Workers', icon: 'wrench' },
   { href: '/admin/services', label: 'Services & prices', icon: 'cash' },
+  { href: '/admin/promotions', label: 'Promotions', icon: 'star' },
   { href: '/admin/payments', label: 'Payments', icon: 'receipt' },
   { href: '/admin/reviews', label: 'Reviews', icon: 'star' },
   { href: '/admin/settings', label: 'Settings', icon: 'settings' },

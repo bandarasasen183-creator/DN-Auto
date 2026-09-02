@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/auth/session';
 import { validateSlot, findOutOfScope } from '@/lib/business';
+import { resolvePromotion, discountFor, describeValue } from '@/lib/promotions';
 
 /** Creates a vehicle and returns it, or returns an existing match. */
 async function upsertVehicle(supabase, ownerId, { make, model, year, registration }) {
@@ -76,6 +77,24 @@ export async function createBooking(_prevState, formData) {
     return { error: `We couldn't save your vehicle: ${err.message}` };
   }
 
+  // Decided here, not in the browser — the wizard only previews it.
+  const promoCode = String(formData.get('promo_code') ?? '').trim();
+  const { promo, referrerId } = await resolvePromotion(supabase, {
+    customerId: profile.id,
+    code: promoCode,
+  });
+
+  const { data: service } = await supabase
+    .from('services')
+    .select('base_price_cents')
+    .eq('id', serviceId)
+    .maybeSingle();
+
+  // Applied against the guide price for now; the final figure is recalculated
+  // when the mechanic builds the real quote.
+  const estimateCents = Number(service?.base_price_cents ?? 0);
+  const discountCents = discountFor(promo, estimateCents);
+
   const { data, error } = await supabase
     .from('bookings')
     .insert({
@@ -86,15 +105,43 @@ export async function createBooking(_prevState, formData) {
       is_emergency: Boolean(slot.isEmergency),
       customer_notes: notes || null,
       status: 'requested',
+      promotion_id: promo?.id ?? null,
+      discount_cents: discountCents,
     })
-    .select('reference')
+    .select('id, reference')
     .single();
 
   if (error) return { error: error.message };
 
+  if (promo) {
+    await supabase.from('promotion_redemptions').insert({
+      promotion_id: promo.id,
+      booking_id: data.id,
+      customer_id: profile.id,
+      referrer_id: referrerId ?? null,
+      discount_cents: discountCents,
+    });
+
+    // The referrer earns their thank-you the moment the friend books.
+    if (referrerId) {
+      await supabase.from('notifications').insert({
+        user_id: referrerId,
+        title: 'Someone used your referral code',
+        body: 'Thank you — we will take LKR 1,000 off your next booking.',
+        link: '/portal',
+      });
+    }
+  }
+
   revalidatePath('/portal');
   revalidatePath('/portal/bookings');
-  return { success: true, reference: data.reference };
+  return {
+    success: true,
+    reference: data.reference,
+    discount: promo
+      ? { label: promo.name, value: describeValue(promo), amountCents: discountCents }
+      : null,
+  };
 }
 
 export async function cancelBooking(_prevState, formData) {
@@ -264,4 +311,40 @@ export async function markAllNotificationsRead() {
     .eq('user_id', profile.id)
     .is('read_at', null);
   revalidatePath('/portal/notifications');
+}
+
+/**
+ * Previews what a code (or no code at all) is worth, for the booking wizard.
+ * The real decision still happens inside createBooking.
+ */
+export async function previewPromotion(_prevState, formData) {
+  const { profile } = await requireRole('customer');
+  const supabase = createClient();
+
+  const code = String(formData.get('promo_code') ?? '').trim();
+  const serviceId = String(formData.get('service_id') ?? '');
+
+  const { promo, reason } = await resolvePromotion(supabase, {
+    customerId: profile.id,
+    code,
+  });
+
+  if (!promo) return { ok: false, reason: reason ?? 'No offer applies to this booking.' };
+
+  const { data: service } = await supabase
+    .from('services')
+    .select('base_price_cents')
+    .eq('id', serviceId)
+    .maybeSingle();
+
+  const amountCents = discountFor(promo, Number(service?.base_price_cents ?? 0));
+
+  return {
+    ok: true,
+    label: promo.name,
+    value: describeValue(promo),
+    reason,
+    amountCents,
+    code,
+  };
 }

@@ -4,10 +4,12 @@ import { useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import ProgressBar from '@/components/ProgressBar';
 import Calendar from '@/components/Calendar';
+import Icon from '@/components/Icon';
+import DiscountStep from './DiscountStep';
 import { createBooking } from '../actions';
 import { formatLKR, validateSlot, HOURS, EXCLUSIONS } from '@/lib/business';
 
-const STEPS = ['Service', 'Vehicle', 'Date & time', 'Details', 'Confirm'];
+const STEPS = ['Service', 'Vehicle', 'Date & time', 'Offers', 'Details', 'Confirm'];
 
 /** Times we can offer for a given date, from the opening hours table. */
 function slotsFor(dateString) {
@@ -37,7 +39,9 @@ export default function BookingWizard({ services, vehicles }) {
     date: '',
     time: '',
     notes: '',
+    promo_code: '',
   });
+  const [offer, setOffer] = useState(null);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
   const [pending, setPending] = useState(false);
@@ -111,6 +115,17 @@ export default function BookingWizard({ services, vehicles }) {
           Your reference is <strong>{result.reference}</strong>. We&apos;ll confirm your slot
           shortly — you&apos;ll see the status change in your portal.
         </p>
+
+        {result.discount && (
+          <div className="offer offer--won">
+            <span className="offer__burst" aria-hidden />
+            <span className="offer__icon" aria-hidden><Icon name="star" size={24} /></span>
+            <div>
+              <strong className="offer__value">{result.discount.value}</strong>
+              <p className="offer__label">{result.discount.label}</p>
+            </div>
+          </div>
+        )}
         <div className="row" style={{ justifyContent: 'center' }}>
           <Link href="/portal/bookings" className="btn">View my bookings</Link>
           <Link href="/portal" className="btn btn--ghost">Back to overview</Link>
@@ -260,8 +275,18 @@ export default function BookingWizard({ services, vehicles }) {
           </>
         )}
 
-        {/* ---- 4. Details ---- */}
+        {/* ---- 4. Offers ---- */}
         {step === 3 && (
+          <DiscountStep
+            serviceId={form.service_id}
+            code={form.promo_code}
+            onCodeChange={(promo_code) => setForm((f) => ({ ...f, promo_code }))}
+            onResolved={setOffer}
+          />
+        )}
+
+        {/* ---- 5. Details ---- */}
+        {step === 4 && (
           <label className="field">
             <span>What&apos;s wrong? (optional)</span>
             <textarea
@@ -273,8 +298,8 @@ export default function BookingWizard({ services, vehicles }) {
           </label>
         )}
 
-        {/* ---- 5. Confirm ---- */}
-        {step === 4 && (
+        {/* ---- 6. Confirm ---- */}
+        {step === 5 && (
           <dl className="summary">
             <div><dt>Service</dt><dd>{service?.name}</dd></div>
             <div><dt>Guide price</dt><dd>{service ? `${service.price_is_from ? 'From ' : ''}${formatLKR(service.base_price_cents)}` : '—'}</dd></div>
@@ -288,6 +313,14 @@ export default function BookingWizard({ services, vehicles }) {
                 })}
               </dd>
             </div>
+            {offer?.ok && (
+              <div>
+                <dt>Discount</dt>
+                <dd className="summary__offer">
+                  <Icon name="star" size={15} /> {offer.value} — {offer.label}
+                </dd>
+              </div>
+            )}
             {form.notes && <div><dt>Notes</dt><dd>{form.notes}</dd></div>}
           </dl>
         )}

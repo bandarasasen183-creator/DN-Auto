@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/auth/session';
+import { discountFor } from '@/lib/promotions';
 
 /** Admin moves a booking to any status and optionally assigns a mechanic. */
 export async function updateBooking(_prevState, formData) {
@@ -174,13 +175,24 @@ export async function createQuote(_prevState, formData) {
 
   const subtotal = items.reduce((sum, i) => sum + i.unit_price_cents, 0);
 
+  // Whatever promotion the customer booked with follows them onto the quote,
+  // recalculated against the real figure rather than the guide price.
+  const { data: booking } = await supabase
+    .from('bookings')
+    .select('promotion_id, promotions(kind, value, max_discount_cents, min_spend_cents)')
+    .eq('id', bookingId)
+    .maybeSingle();
+
+  const discount = discountFor(booking?.promotions ?? null, subtotal);
+
   const { data: quote, error } = await supabase
     .from('quotes')
     .insert({
       booking_id: bookingId,
       status: 'sent',
       subtotal_cents: subtotal,
-      total_cents: subtotal,
+      discount_cents: discount,
+      total_cents: subtotal - discount,
       created_by: profile.id,
       notes: String(formData.get('notes') ?? '').trim() || null,
     })
@@ -258,4 +270,80 @@ export async function saveWorkshopSettings(_prevState, formData) {
   // The banner and contact details show on every page.
   revalidatePath('/', 'layout');
   return { success: true };
+}
+
+/** Create or update a promotion. Admin owns every discount the site offers. */
+export async function savePromotion(_prevState, formData) {
+  await requireRole('admin');
+  const supabase = createClient();
+
+  const id = String(formData.get('id') ?? '');
+  const name = String(formData.get('name') ?? '').trim();
+  const kind = String(formData.get('kind') ?? 'percent');
+  const trigger = String(formData.get('trigger') ?? 'code');
+  const rawValue = Number(formData.get('value') ?? 0);
+
+  if (!name) return { error: 'Give the promotion a name.' };
+  if (!Number.isFinite(rawValue) || rawValue <= 0) {
+    return { error: 'Enter how much the discount is worth.' };
+  }
+  if (kind === 'percent' && rawValue > 100) {
+    return { error: 'A percentage discount cannot be more than 100%.' };
+  }
+
+  const code = String(formData.get('code') ?? '').trim().toUpperCase();
+  if (trigger === 'code' && !code) {
+    return { error: 'A code promotion needs a code for customers to type.' };
+  }
+
+  const maxDiscount = Number(formData.get('max_discount_lkr') ?? 0);
+  const minSpend = Number(formData.get('min_spend_lkr') ?? 0);
+
+  const row = {
+    name,
+    description: String(formData.get('description') ?? '').trim() || null,
+    // Automatic promotions have no code; a stray one would be confusing.
+    code: trigger === 'code' || trigger === 'referral' ? code || null : null,
+    trigger,
+    kind,
+    // Percent is stored whole; fixed amounts are LKR cents like everything else.
+    value: kind === 'percent' ? Math.round(rawValue) : Math.round(rawValue * 100),
+    max_discount_cents: maxDiscount > 0 ? Math.round(maxDiscount * 100) : null,
+    min_spend_cents: minSpend > 0 ? Math.round(minSpend * 100) : 0,
+    starts_on: String(formData.get('starts_on') ?? '') || null,
+    ends_on: String(formData.get('ends_on') ?? '') || null,
+    usage_limit: Number(formData.get('usage_limit') ?? 0) || null,
+    per_customer_limit: Number(formData.get('per_customer_limit') ?? 1) || 1,
+    is_active: formData.get('is_active') === 'on',
+  };
+
+  const { error } = id
+    ? await supabase.from('promotions').update(row).eq('id', id)
+    : await supabase.from('promotions').insert(row);
+
+  if (error) {
+    return {
+      error: error.code === '23505'
+        ? 'That code is already in use by another promotion.'
+        : error.message,
+    };
+  }
+
+  revalidatePath('/admin/promotions');
+  revalidatePath('/');
+  return { success: true };
+}
+
+/** Switch a promotion on or off without deleting its history. */
+export async function togglePromotion(formData) {
+  await requireRole('admin');
+  const supabase = createClient();
+
+  await supabase
+    .from('promotions')
+    .update({ is_active: formData.get('active') === 'true' })
+    .eq('id', String(formData.get('promotion_id') ?? ''));
+
+  revalidatePath('/admin/promotions');
+  revalidatePath('/');
 }

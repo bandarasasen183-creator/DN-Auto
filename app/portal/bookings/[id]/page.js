@@ -38,7 +38,7 @@ export default async function BookingDetail({ params }) {
       .order('created_at', { ascending: true }),
     supabase
       .from('quotes')
-      .select('id, status, total_cents, notes, quote_items(id, description, kind, quantity, unit_price_cents, warranty_months)')
+      .select('id, status, discount_cents, total_cents, notes, quote_items(id, description, kind, quantity, unit_price_cents, warranty_months)')
       .eq('booking_id', booking.id)
       .order('created_at', { ascending: false }),
     supabase
@@ -99,6 +99,12 @@ export default async function BookingDetail({ params }) {
                   ))}
                 </tbody>
                 <tfoot>
+                  {q.discount_cents > 0 && (
+                    <tr className="table__discount">
+                      <td colSpan={2}>Discount applied</td>
+                      <td className="right">−{formatLKR(q.discount_cents)}</td>
+                    </tr>
+                  )}
                   <tr><th colSpan={2}>Total</th><th className="right">{formatLKR(q.total_cents)}</th></tr>
                 </tfoot>
               </table>
