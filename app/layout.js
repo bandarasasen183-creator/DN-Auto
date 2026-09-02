@@ -1,13 +1,26 @@
 import './globals.css';
 import { BUSINESS } from '@/lib/business';
+import { SITE_URL } from '@/lib/domains';
 
 export const metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: `${BUSINESS.name} — Kadawatha`,
     template: `%s · ${BUSINESS.shortName}`,
   },
   description:
     'Certified petrol-vehicle repairs in Kadawatha since 2019. Engine diagnostics, servicing, brakes, electrical and transmission work with a 6-month parts warranty.',
+  alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website',
+    siteName: BUSINESS.name,
+    locale: 'en_LK',
+    url: SITE_URL,
+    title: `${BUSINESS.name} — Kadawatha`,
+    description:
+      'Certified petrol-vehicle repairs in Kadawatha since 2019, with a 6-month parts warranty.',
+  },
+  robots: { index: true, follow: true },
 };
 
 export const viewport = {

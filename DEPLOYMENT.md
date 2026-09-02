@@ -1,7 +1,8 @@
 # Deploying DN Auto
 
-Everything here assumes the future domain is `dnauto.lk`. Swap in whatever you
-actually register — nothing in the code hard-codes it.
+The domain is **dnauto.org**, registered with Spaceship. It is set in one
+place — `ROOT_DOMAIN` in `lib/domains.js` — and can be overridden per
+environment with `NEXT_PUBLIC_ROOT_DOMAIN`.
 
 ---
 
@@ -14,13 +15,15 @@ actually register — nothing in the code hard-codes it.
 3. **Database → Replication** → enable Realtime on the `notifications` table.
    Without this the notification bell still works, it just won't update live.
 4. **Authentication → URL Configuration**:
-   - Site URL: `https://dnauto.lk`
-   - Redirect URLs — add every host the app runs on:
+   - Site URL: `https://dnauto.org`
+   - Redirect URLs — add every host the app runs on. Miss one and logins fail
+     silently on that host:
      ```
-     https://dnauto.lk/auth/callback
-     https://customer.dnauto.lk/auth/callback
-     https://workers.dnauto.lk/auth/callback
-     https://admin.dnauto.lk/auth/callback
+     https://dnauto.org/auth/callback
+     https://www.dnauto.org/auth/callback
+     https://customer.dnauto.org/auth/callback
+     https://workers.dnauto.org/auth/callback
+     https://admin.dnauto.org/auth/callback
      http://localhost:3000/auth/callback
      ```
 5. Copy the project URL and anon key from **Settings → API**.
@@ -33,6 +36,8 @@ actually register — nothing in the code hard-codes it.
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Everywhere | Yes |
 | `SUPABASE_SERVICE_ROLE_KEY` | Reserved for admin scripts. **Never** expose it to the browser | No |
 | `ANTHROPIC_API_KEY` | DN Assist. Without it the assistant returns a clear "not configured" message rather than failing | No |
+| `NEXT_PUBLIC_ROOT_DOMAIN` | Overrides `dnauto.org`, e.g. on a staging deploy | No |
+| `NEXT_PUBLIC_SITE_URL` | Absolute base for canonical links and the sitemap | No |
 | `WEBXPAY_MERCHANT_ID` / `WEBXPAY_SECRET` | WEBXPAY adapter | When going live |
 | `KOKO_MERCHANT_ID` / `KOKO_SECRET` | Koko adapter | When going live |
 | `PAYABLE_TERMINAL_ID` / `PAYABLE_API_KEY` | Pushing amounts to the POS terminal | Optional |
@@ -55,16 +60,28 @@ One deployment serves all three portals — do **not** deploy the app three
 times. Point every host at the same deployment and the middleware sorts out
 who sees what.
 
-**DNS** — four records, all to the same target:
+**Where the DNS lives.** The domain is at Spaceship, so records are edited in
+**Spaceship → Domain List → dnauto.org → Manage → Advanced DNS**. Leave the
+nameservers on Spaceship's default (Spaceship DNS) — you do not need to move
+them to Vercel.
+
+**Records** — all pointing at the same deployment:
 
 | Host | Type | Value |
 |---|---|---|
-| `dnauto.lk` | A / ALIAS | the host's IP or alias |
-| `customer.dnauto.lk` | CNAME | `cname.vercel-dns.com` |
-| `workers.dnauto.lk` | CNAME | `cname.vercel-dns.com` |
-| `admin.dnauto.lk` | CNAME | `cname.vercel-dns.com` |
+| `@` | A | `76.76.21.21` |
+| `www` | CNAME | `cname.vercel-dns.com` |
+| `customer` | CNAME | `cname.vercel-dns.com` |
+| `workers` | CNAME | `cname.vercel-dns.com` |
+| `admin` | CNAME | `cname.vercel-dns.com` |
 
-Then add all four as domains on the same Vercel project.
+Vercel shows the exact apex value to use on the Domains screen — use whatever
+it gives you rather than the number above if they differ. Then add all five
+host names as domains on the **same** Vercel project.
+
+DNS changes at Spaceship usually take effect within an hour, occasionally up
+to 24. HTTPS certificates are issued by Vercel automatically once each host
+resolves — you do **not** need to buy an SSL certificate for this.
 
 **What happens then**, from `middleware.js` and `lib/domains.js`:
 
@@ -83,7 +100,7 @@ Sign up through `/signup` — this always creates a *customer*, by design — th
 in the Supabase SQL editor:
 
 ```sql
-update profiles set role = 'admin' where email = 'you@example.com';
+update profiles set role = 'admin' where email = 'bandarasasen183@gmail.com';
 ```
 
 From then on, every other staff account is created from **Admin → Customers**

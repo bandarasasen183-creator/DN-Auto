@@ -99,9 +99,13 @@ Defined once in `lib/business.js` and validated server-side:
 
 ## Subdomains
 
-`middleware.js` already maps `customer.` / `workers.` / `admin.` hosts to the
-right portal, so the three portals can be split across subdomains without a code
-change — only DNS and the host mapping table need updating.
+The domain is **dnauto.org** (registered with Spaceship), set once as
+`ROOT_DOMAIN` in `lib/domains.js`.
+
+`middleware.js` maps `customer.` / `workers.` / `admin.` hosts to the right
+portal, so the three portals split across subdomains without a code change —
+only DNS and the host mapping table need updating. See
+[DEPLOYMENT.md](DEPLOYMENT.md) for the exact Spaceship records.
 
 ## Discounts
 
