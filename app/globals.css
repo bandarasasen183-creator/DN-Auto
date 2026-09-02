@@ -2093,3 +2093,172 @@ a, button, .pick, .slot, .cal__day { touch-action: manipulation; }
 .offerstrip__item .icon { color: var(--amber-600); fill: currentColor; }
 .offerstrip__item p { margin: 0; color: var(--steel-400); }
 .offerstrip .btn { margin-left: auto; }
+
+/* =====================================================================
+   Billing, receipts and the card-terminal screen
+   ===================================================================== */
+
+.billline {
+  display: grid;
+  gap: 0.5rem;
+  align-items: end;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed var(--steel-100);
+  margin-bottom: 0.75rem;
+}
+@media (min-width: 900px) {
+  .billline { grid-template-columns: 1.1fr 2fr 0.9fr 0.5fr 1fr auto; }
+}
+
+.paypanel { position: sticky; top: 1.5rem; }
+.paypanel__amount {
+  margin: 0.1rem 0 1rem;
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5vw, 3rem);
+  line-height: 1;
+  color: var(--ink-900);
+}
+
+.refundform { display: grid; gap: 0.4rem; min-width: 220px; }
+.refundform .input { padding: 0.4rem 0.6rem; }
+
+/* --- Receipt ------------------------------------------------------------- */
+.receipt__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--ink-800);
+}
+
+.receipt__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  padding: 0.85rem 0;
+  color: var(--steel-400);
+}
+
+.receipt__foot {
+  margin: 1rem 0 0;
+  padding-top: 0.85rem;
+  border-top: 1px dashed var(--steel-200);
+}
+
+/* --- Card terminal screen ------------------------------------------------ */
+.terminal {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background:
+    radial-gradient(70% 60% at 50% 0%, rgb(245 165 36 / 0.16), transparent 65%),
+    linear-gradient(165deg, var(--ink-800), var(--ink-900));
+  color: var(--steel-200);
+}
+
+.terminal__card {
+  width: min(560px, 100%);
+  text-align: center;
+  animation: rise var(--dur-slow) var(--ease) both;
+}
+
+.terminal__brand {
+  margin: 0 0 2rem;
+  font-family: var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--steel-400);
+}
+
+.terminal__label {
+  margin: 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--steel-400);
+}
+
+.terminal__amount {
+  margin: 0.35rem 0 0.5rem;
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 12vw, 5.5rem);
+  line-height: 1;
+  color: #fff;
+}
+
+.terminal__ref { margin: 0 0 2rem; font-size: 0.92rem; color: var(--steel-400); }
+
+.terminal__wait,
+.terminal__manual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  border-radius: var(--r-md);
+  text-align: left;
+}
+
+.terminal__wait { background: rgb(255 255 255 / 0.06); }
+.terminal__wait p, .terminal__manual p { margin: 0; }
+
+.terminal__manual {
+  background: rgb(245 165 36 / 0.14);
+  border: 1px solid rgb(245 165 36 / 0.4);
+  color: var(--amber-400);
+}
+.terminal__manual strong { color: #fff; }
+
+.terminal__pulse {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--amber-500);
+  animation: mic-pulse 1.6s var(--ease) infinite;
+}
+
+.terminal__actions { text-align: left; }
+.terminal__actions .field > span { color: var(--steel-400); }
+.terminal__actions .input {
+  background: rgb(255 255 255 / 0.06);
+  border-color: var(--ink-500);
+  color: #fff;
+}
+
+.terminal__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+.terminal__buttons .btn { flex: 1; min-width: 180px; }
+
+.terminal__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 1.75rem;
+  font-size: 0.9rem;
+  color: var(--steel-400);
+}
+.terminal__back:hover { color: var(--amber-400); }
+
+/* --- Printing a receipt --------------------------------------------------- */
+@media print {
+  .shell__main > .shell__head,
+  .paypanel,
+  .refundform,
+  .empty,
+  .tabs { display: none !important; }
+
+  .receipt {
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  .receipt .pill { border: 1px solid #999; background: none !important; color: #000 !important; }
+}

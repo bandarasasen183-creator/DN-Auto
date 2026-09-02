@@ -51,7 +51,8 @@ engines fold the alias into the canonical domain rather than ranking both.
 | `NEXT_PUBLIC_ROOT_DOMAIN` | Overrides `dnauto.lk`, e.g. on a staging deploy | No |
 | `NEXT_PUBLIC_ALIAS_DOMAINS` | Comma-separated domains that redirect to the canonical one | No |
 | `NEXT_PUBLIC_SITE_URL` | Absolute base for canonical links and the sitemap | No |
-| `WEBXPAY_MERCHANT_ID` / `WEBXPAY_SECRET` | WEBXPAY adapter | When going live |
+| `WEBXPAY_MERCHANT_ID` / `WEBXPAY_SECRET` | WEBXPAY online adapter | When going live |
+| `WEBXPAY_TERMINAL_URL` / `WEBXPAY_TERMINAL_KEY` | Card terminal. Set these and amounts are pushed to the machine; leave blank and the tablet shows the amount to key in | When their terminal docs arrive |
 | `KOKO_MERCHANT_ID` / `KOKO_SECRET` | Koko adapter | When going live |
 | `PAYABLE_TERMINAL_ID` / `PAYABLE_API_KEY` | Pushing amounts to the POS terminal | Optional |
 
@@ -85,7 +86,11 @@ point the domain at Vercel — .lk resellers usually do this for you.
 | `www` | CNAME | `cname.vercel-dns.com` |
 | `customer` | CNAME | `cname.vercel-dns.com` |
 | `workers` | CNAME | `cname.vercel-dns.com` |
+| `team` | CNAME | `cname.vercel-dns.com` |
+| `pay` | CNAME | `cname.vercel-dns.com` |
 | `admin` | CNAME | `cname.vercel-dns.com` |
+
+`pay` is the host for the workshop tablets — it opens billing directly.
 
 ### dnauto.org — the alias
 

@@ -126,6 +126,29 @@ written to `promotion_redemptions`, so what an offer has cost is a query
 rather than a guess. Eligibility is decided server-side in `lib/promotions.js`
 and re-checked inside the booking action — the wizard only previews it.
 
+## Billing and the card terminal
+
+The team raises bills at **Worker → Billing**: against a job or for a walk-in
+with no account, with a promo code applied at the counter. Paying goes through
+`terminal_requests` — the app writes what the machine needs and an adapter
+delivers it (`lib/payments/terminal.js`):
+
+* **push** — the terminal has an API, so the amount appears on the machine and
+  the customer taps. Nobody keys anything in.
+* **manual** — the terminal is standalone, as many Sri Lankan POS terminals
+  are. The tablet shows the amount and reference in large type for the
+  mechanic to key in, then they confirm. One extra step; identical record.
+
+WEBXPAY is **manual** until their terminal integration documents arrive.
+Filling in `push` is the only change needed — no schema change, nothing moves
+in the portals.
+
+Refunds are their own rows against the payment they reverse, never an edit, so
+the ledger stays append-only and every figure traces back to who did what.
+
+Tablets live on `pay.dnauto.lk`, which opens billing and nothing else, so a
+machine left on the counter cannot wander into the rest of the portal.
+
 ## Payments
 
 Deliberately provider-agnostic until merchant credentials exist. The `payments`
