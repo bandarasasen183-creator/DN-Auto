@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" role="img" aria-label="Illustration of a car on a workshop lift">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#11151d"/><stop offset="1" stop-color="#0b0e13"/>
+    </linearGradient>
+    <linearGradient id="lamp" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f5a524" stop-opacity=".38"/>
+      <stop offset="1" stop-color="#f5a524" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="560" fill="url(#sky)"/>
+  <g stroke="#232a35" stroke-width="2">
+    <path d="M0 430h800M0 470h800M0 510h800"/>
+    <path d="M120 380v150M320 380v150M520 380v150M700 380v150"/>
+  </g>
+  <path d="M300 60h200l70 150H230z" fill="url(#lamp)"/>
+  <circle cx="400" cy="66" r="16" fill="#f5a524"/>
+  <g fill="none" stroke="#6c7889" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M250 330h300l40 60v40H210v-40z"/>
+    <path d="M290 330l30-60h160l30 60"/>
+    <path d="M330 275v55M470 275v55"/>
+    <circle cx="290" cy="430" r="34"/><circle cx="510" cy="430" r="34"/>
+  </g>
+  <g fill="none" stroke="#f5a524" stroke-width="3" stroke-linecap="round">
+    <path d="M290 430h.01M510 430h.01"/>
+    <path d="M210 390h40M550 390h40"/>
+  </g>
+  <g stroke="#323b49" stroke-width="6" stroke-linecap="round">
+    <path d="M170 470v60M630 470v60M120 530h100M580 530h100"/>
+  </g>
+</svg>

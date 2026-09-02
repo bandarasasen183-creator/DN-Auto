@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { BUSINESS } from '@/lib/business';
+import Icon from '@/components/Icon';
 
 const NAV = [
   { href: '/', label: 'Home' },
@@ -63,7 +64,7 @@ export default function SiteHeader({ portalHref, portalLabel }) {
             aria-expanded={open}
             aria-label="Menu"
           >
-            {open ? '✕' : '☰'}
+            <Icon name={open ? 'close' : 'menu'} size={22} />
           </button>
         </div>
       </div>

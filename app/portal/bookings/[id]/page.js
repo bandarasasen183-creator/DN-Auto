@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/server';
 import { CUSTOMER_NAV } from '../../nav';
 import { formatLKR, STATUS_FLOW } from '@/lib/business';
 import CancelBooking from './CancelBooking';
+import ReviewForm from './ReviewForm';
 
 export const metadata = { title: 'Booking' };
 
@@ -29,7 +30,7 @@ export default async function BookingDetail({ params }) {
 
   if (!booking) notFound();
 
-  const [{ data: events }, { data: quotes }] = await Promise.all([
+  const [{ data: events }, { data: quotes }, { data: review }] = await Promise.all([
     supabase
       .from('booking_events')
       .select('id, to_status, message, created_at')
@@ -40,6 +41,11 @@ export default async function BookingDetail({ params }) {
       .select('id, status, total_cents, notes, quote_items(id, description, kind, quantity, unit_price_cents, warranty_months)')
       .eq('booking_id', booking.id)
       .order('created_at', { ascending: false }),
+    supabase
+      .from('reviews')
+      .select('id, rating')
+      .eq('booking_id', booking.id)
+      .maybeSingle(),
   ]);
 
   const canCancel = ['requested', 'confirmed'].includes(booking.status);
@@ -146,6 +152,10 @@ export default async function BookingDetail({ params }) {
           )}
 
           {canCancel && <CancelBooking bookingId={booking.id} />}
+
+          {booking.status === 'completed' && !review && (
+            <ReviewForm bookingId={booking.id} />
+          )}
         </aside>
       </div>
     </PortalShell>

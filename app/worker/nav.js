@@ -1,6 +1,7 @@
 export const WORKER_NAV = [
-  { href: '/worker', label: 'My day', icon: '◆' },
-  { href: '/worker/incoming', label: 'Incoming jobs', icon: '⇄' },
-  { href: '/worker/jobs', label: 'My jobs', icon: '▤' },
-  { href: '/worker/pay', label: 'My pay', icon: '₨' },
+  { href: '/worker', label: 'My day', icon: 'dashboard' },
+  { href: '/worker/incoming', label: 'Incoming jobs', icon: 'inbox' },
+  { href: '/worker/jobs', label: 'My jobs', icon: 'wrench' },
+  { href: '/worker/pay', label: 'My pay', icon: 'cash' },
+  { href: '/worker/settings', label: 'Settings', icon: 'settings' },
 ];

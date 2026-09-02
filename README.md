@@ -19,7 +19,8 @@ npm run dev
 ### Setting up the database
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Open the SQL editor and run `supabase/schema.sql`, then `supabase/seed.sql`.
+2. Open the SQL editor and run, in order:
+   `supabase/schema.sql` → `supabase/migrations/002_reviews_and_settings.sql` → `supabase/seed.sql`
 3. Copy the project URL and anon key into `.env.local`.
 
 ### Creating the first admin
@@ -55,8 +56,10 @@ lib/
   payments/             provider-agnostic gateway adapters
   domains.js            subdomain -> portal map
 middleware.js           session refresh, role routing, subdomain mapping
+public/images/          workshop artwork — replace with real photographs
 supabase/
   schema.sql            tables, triggers, row-level security
+  migrations/           later schema changes, run in order after schema.sql
   seed.sql              service catalogue with LKR guide prices
 legacy/                 the original static prototype, kept for reference
 ```

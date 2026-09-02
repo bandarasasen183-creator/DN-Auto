@@ -1,22 +1,36 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { getSessionUser, ROLE_HOME } from '@/lib/auth/session';
-import { BUSINESS, HOURS, PROMISES, PROCESS } from '@/lib/business';
+import { BUSINESS, HOURS, PROMISES, PROCESS, SERVICE_ICONS } from '@/lib/business';
 import Reveal from '@/components/Reveal';
 import SiteHeader from '@/components/site/SiteHeader';
 import SiteFooter from '@/components/site/SiteFooter';
 import DnAssist from '@/components/assistant/DnAssist';
+import AnnouncementBar from '@/components/AnnouncementBar';
+import Icon from '@/components/Icon';
+import Stars from '@/components/Stars';
 
 export default async function HomePage() {
   const supabase = createClient();
-  const [{ data: services }, session] = await Promise.all([
+  const [{ data: services }, { data: reviews }, session] = await Promise.all([
     supabase
       .from('services')
-      .select('id, slug, name, description, base_price_cents, price_is_from, category, duration_minutes')
+      .select('id, slug, name, description, category, duration_minutes')
       .eq('is_active', true)
       .order('sort_order'),
+    supabase
+      .from('reviews')
+      .select('id, rating, body, reply, created_at, author:profiles!reviews_author_id_fkey(full_name)')
+      .eq('is_published', true)
+      .order('created_at', { ascending: false })
+      .limit(6),
     getSessionUser(),
   ]);
+
+  const published = reviews ?? [];
+  const averageRating = published.length
+    ? (published.reduce((sum, r) => sum + r.rating, 0) / published.length).toFixed(1)
+    : null;
 
   const portalHref = session ? ROLE_HOME[session.profile.role] : '/login';
   const portalLabel = session ? 'My portal' : 'Sign in';
@@ -27,11 +41,13 @@ export default async function HomePage() {
   return (
     <>
       <Reveal />
+      <AnnouncementBar />
       <SiteHeader portalHref={portalHref} portalLabel={portalLabel} />
 
       {/* ---------------- Hero ---------------- */}
       <section className="hero">
-        <div className="container hero__inner">
+        <div className="container hero__inner hero__inner--split">
+          <div>
           <p className="hero__eyebrow rise">
             KADAWATHA · SINCE {BUSINESS.established}
           </p>
@@ -65,8 +81,12 @@ export default async function HomePage() {
               <dd>services offered</dd>
             </div>
           </dl>
-        </div>
+          </div>
 
+          <figure className="hero__art rise rise-2">
+            <img src="/images/workshop.svg" alt="A vehicle raised on a workshop lift under an inspection lamp" width="800" height="560" />
+          </figure>
+        </div>
       </section>
 
       <main>
@@ -77,6 +97,7 @@ export default async function HomePage() {
           <div className="grid cols-4" style={{ marginTop: '2rem' }}>
             {PROMISES.map((p) => (
               <article key={p.title} className="card card--hover reveal">
+                <span className="promise__icon" aria-hidden><Icon name={p.icon} size={22} /></span>
                 <h3>{p.title}</h3>
                 <p className="small muted" style={{ margin: 0 }}>{p.body}</p>
               </article>
@@ -102,6 +123,9 @@ export default async function HomePage() {
             <div className="grid cols-3" style={{ marginTop: '2rem' }}>
               {(services ?? []).slice(0, 6).map((s) => (
                 <article key={s.id} className="card card--hover reveal servicecard">
+                  <span className="servicecard__icon" aria-hidden>
+                    <Icon name={SERVICE_ICONS[s.slug] ?? 'wrench'} size={22} />
+                  </span>
                   <span className="pill">{s.category}</span>
                   <h3>{s.name}</h3>
                   <p className="small muted">{s.description}</p>
@@ -220,6 +244,69 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* ---------------- Inside the workshop ---------------- */}
+        <section className="band">
+          <div className="container section">
+            <p className="eyebrow reveal">Inside the workshop</p>
+            <h2 className="reveal">Equipment that finds the fault</h2>
+            <div className="gallery" style={{ marginTop: '2rem' }}>
+              <figure className="gallery__item reveal">
+                <img src="/images/diagnostics.svg" alt="Diagnostic equipment reading live engine data" width="600" height="420" />
+                <figcaption>Live engine data, read properly before a part is ordered.</figcaption>
+              </figure>
+              <figure className="gallery__item reveal">
+                <img src="/images/parts.svg" alt="Genuine parts and workshop tools" width="600" height="420" />
+                <figcaption>Genuine parts, warrantied and recorded on your quote.</figcaption>
+              </figure>
+              <figure className="gallery__item reveal">
+                <img src="/images/bay.svg" alt="A service bay in the workshop" width="600" height="420" />
+                <figcaption>Bays booked by appointment, so your car is worked on, not parked.</figcaption>
+              </figure>
+            </div>
+            <p className="small muted reveal" style={{ marginTop: '1rem' }}>
+              Replace these with photographs of the workshop by dropping files into
+              <code> public/images/</code>.
+            </p>
+          </div>
+        </section>
+
+        {/* ---------------- Reviews ---------------- */}
+        {published.length > 0 && (
+          <section className="container section">
+            <div className="section__head reveal">
+              <div>
+                <p className="eyebrow">Customers</p>
+                <h2>What people say</h2>
+              </div>
+              {averageRating && (
+                <div className="ratingbox">
+                  <strong>{averageRating}</strong>
+                  <Stars value={Math.round(averageRating)} />
+                  <span className="small muted">{published.length} review{published.length === 1 ? '' : 's'}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="grid cols-3" style={{ marginTop: '2rem' }}>
+              {published.map((r) => (
+                <blockquote key={r.id} className="quote card reveal">
+                  <Stars value={r.rating} />
+                  {r.body && <p>{r.body}</p>}
+                  <footer className="small muted">
+                    {r.author?.full_name ?? 'A customer'} ·{' '}
+                    {new Date(r.created_at).toLocaleDateString('en-LK', { month: 'long', year: 'numeric' })}
+                  </footer>
+                  {r.reply && (
+                    <p className="quote__reply small">
+                      <strong>DN Auto:</strong> {r.reply}
+                    </p>
+                  )}
+                </blockquote>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* ---------------- CTA band ---------------- */}
         <section className="cta">

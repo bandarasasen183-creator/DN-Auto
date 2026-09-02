@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { createQuote } from '../../actions';
 import { formatLKR } from '@/lib/business';
+import Icon from '@/components/Icon';
 
 const BLANK = { description: '', kind: 'labour', price: '' };
 
@@ -84,7 +85,7 @@ export default function QuoteBuilder({ bookingId }) {
               disabled={items.length === 1}
               aria-label={`Remove line ${i + 1}`}
             >
-              ✕
+              <Icon name="close" size={14} />
             </button>
           </div>
         ))}

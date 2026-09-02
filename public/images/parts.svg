@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 420" role="img" aria-label="Illustration of genuine parts and tools">
+  <rect width="600" height="420" fill="#11151d"/>
+  <g fill="none" stroke="#6c7889" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="200" cy="210" r="86"/><circle cx="200" cy="210" r="34"/>
+    <path d="M200 124v26M200 270v26M114 210h26M260 210h26M139 149l19 19M242 252l19 19M261 149l-19 19M158 252l-19 19"/>
+  </g>
+  <g fill="none" stroke="#f5a524" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M370 150a34 34 0 0 0 42 42l70 70a20 20 0 0 1-28 28l-70-70a34 34 0 0 0-42-42z"/>
+    <path d="M370 150l22-22 26 26-22 22"/>
+  </g>
+  <rect x="330" y="300" width="180" height="18" rx="9" fill="#232a35"/>
+</svg>

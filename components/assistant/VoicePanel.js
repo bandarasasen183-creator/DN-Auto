@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Icon from '@/components/Icon';
 
 /**
  * Voice mode: dictate with the Web Speech API, and have the reply read back.
@@ -103,7 +104,7 @@ export default function VoicePanel({ onSend, busy, lastReply }) {
         aria-pressed={listening}
         aria-label={listening ? 'Stop listening' : 'Start listening'}
       >
-        🎙
+        <Icon name="mic" size={34} />
       </button>
 
       <p style={{ minHeight: '3rem', marginTop: '1rem' }}>

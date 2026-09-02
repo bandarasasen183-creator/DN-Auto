@@ -179,3 +179,89 @@ export async function removeVehicle(formData) {
     .eq('owner_id', profile.id);
   revalidatePath('/portal/vehicles');
 }
+
+/** A customer reviews a completed job. Published only once admin approves. */
+export async function submitReview(_prevState, formData) {
+  const { profile } = await requireRole('customer');
+  const supabase = createClient();
+
+  const bookingId = String(formData.get('booking_id') ?? '');
+  const rating = Number(formData.get('rating') ?? 0);
+  const body = String(formData.get('body') ?? '').trim();
+
+  if (!bookingId) return { error: 'Which job is this about?' };
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return { error: 'Please give a rating from 1 to 5.' };
+  }
+
+  // RLS also enforces "your own booking, and completed" — this is the
+  // friendlier version of the same rule.
+  const { error } = await supabase.from('reviews').insert({
+    booking_id: bookingId,
+    author_id: profile.id,
+    rating,
+    body: body || null,
+  });
+
+  if (error) {
+    return {
+      error: error.code === '23505'
+        ? 'You have already reviewed this job.'
+        : error.message,
+    };
+  }
+
+  revalidatePath('/portal/bookings');
+  revalidatePath(`/portal/bookings/${bookingId}`);
+  return { success: true };
+}
+
+/** Update the signed-in customer's own name and phone. */
+export async function updateProfile(_prevState, formData) {
+  const { profile } = await requireRole(['customer', 'worker', 'admin']);
+  const supabase = createClient();
+
+  const fullName = String(formData.get('full_name') ?? '').trim();
+  const phone = String(formData.get('phone') ?? '').trim();
+
+  if (!fullName) return { error: 'Your name cannot be blank.' };
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ full_name: fullName, phone: phone || null })
+    .eq('id', profile.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath('/', 'layout');
+  return { success: true };
+}
+
+/** Change password for whoever is signed in. */
+export async function changePassword(_prevState, formData) {
+  await requireRole(['customer', 'worker', 'admin']);
+  const supabase = createClient();
+
+  const password = String(formData.get('password') ?? '');
+  const confirm = String(formData.get('confirm') ?? '');
+
+  if (password.length < 8) return { error: 'Use at least 8 characters.' };
+  if (password !== confirm) return { error: 'The two passwords do not match.' };
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { error: error.message };
+
+  return { success: true, notice: 'Password changed.' };
+}
+
+/** Mark every unread notification as read. */
+export async function markAllNotificationsRead() {
+  const { profile } = await requireRole(['customer', 'worker', 'admin']);
+  const supabase = createClient();
+  await supabase
+    .from('notifications')
+    .update({ read_at: new Date().toISOString() })
+    .eq('user_id', profile.id)
+    .is('read_at', null);
+  revalidatePath('/portal/notifications');
+}

@@ -203,3 +203,59 @@ export async function createQuote(_prevState, formData) {
   revalidatePath(`/admin/bookings/${bookingId}`);
   return { success: true };
 }
+
+/** Publish or hide a review on the public site. */
+export async function setReviewPublished(formData) {
+  await requireRole('admin');
+  const supabase = createClient();
+
+  await supabase
+    .from('reviews')
+    .update({ is_published: formData.get('publish') === 'true' })
+    .eq('id', String(formData.get('review_id') ?? ''));
+
+  revalidatePath('/admin/reviews');
+  revalidatePath('/');
+}
+
+/** The workshop's public reply to a review. */
+export async function replyToReview(_prevState, formData) {
+  await requireRole('admin');
+  const supabase = createClient();
+
+  const reply = String(formData.get('reply') ?? '').trim();
+  const { error } = await supabase
+    .from('reviews')
+    .update({ reply: reply || null })
+    .eq('id', String(formData.get('review_id') ?? ''));
+
+  if (error) return { error: error.message };
+
+  revalidatePath('/admin/reviews');
+  revalidatePath('/');
+  return { success: true };
+}
+
+/** Contact details and the site-wide announcement, without a code change. */
+export async function saveWorkshopSettings(_prevState, formData) {
+  await requireRole('admin');
+  const supabase = createClient();
+
+  const { error } = await supabase
+    .from('workshop_settings')
+    .update({
+      phone: String(formData.get('phone') ?? '').trim() || null,
+      whatsapp: String(formData.get('whatsapp') ?? '').trim() || null,
+      email: String(formData.get('email') ?? '').trim() || null,
+      announcement: String(formData.get('announcement') ?? '').trim() || null,
+      accepting_bookings: formData.get('accepting_bookings') === 'on',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', 1);
+
+  if (error) return { error: error.message };
+
+  // The banner and contact details show on every page.
+  revalidatePath('/', 'layout');
+  return { success: true };
+}

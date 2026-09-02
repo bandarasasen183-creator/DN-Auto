@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 420" role="img" aria-label="Illustration of diagnostic equipment reading engine data">
+  <rect width="600" height="420" fill="#11151d"/>
+  <rect x="70" y="60" width="300" height="230" rx="14" fill="none" stroke="#6c7889" stroke-width="3"/>
+  <rect x="94" y="86" width="252" height="150" rx="6" fill="#0b0e13" stroke="#323b49" stroke-width="2"/>
+  <polyline points="104,190 140,190 158,140 176,220 196,120 216,196 240,160 266,160 292,120 336,120"
+            fill="none" stroke="#f5a524" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="#323b49"><rect x="104" y="250" width="70" height="14" rx="7"/><rect x="186" y="250" width="46" height="14" rx="7"/><rect x="244" y="250" width="102" height="14" rx="7"/></g>
+  <path d="M370 175c60 0 60 90 120 90h60" fill="none" stroke="#6c7889" stroke-width="3"/>
+  <rect x="470" y="230" width="80" height="70" rx="10" fill="none" stroke="#6c7889" stroke-width="3"/>
+  <path d="M490 250h40M490 268h28" stroke="#f5a524" stroke-width="3" stroke-linecap="round"/>
+</svg>

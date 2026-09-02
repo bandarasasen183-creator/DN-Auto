@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Icon from '@/components/Icon';
 import { signOut } from '@/app/(auth)/actions';
 import { BUSINESS } from '@/lib/business';
 import DnAssist from '@/components/assistant/DnAssist';
@@ -42,7 +43,7 @@ export default function PortalShell({ profile, nav, current, title, subtitle, ac
                 className="navlink"
                 aria-current={item.href === current ? 'page' : undefined}
               >
-                <span aria-hidden>{item.icon}</span>
+                <Icon name={item.icon} size={18} />
                 {item.label}
               </Link>
             </li>
@@ -56,7 +57,7 @@ export default function PortalShell({ profile, nav, current, title, subtitle, ac
           </div>
           <form action={signOut}>
             <button type="submit" className="btn btn--ghost small" style={{ width: '100%', color: 'var(--steel-200)' }}>
-              Sign out
+              <Icon name="logout" size={16} /> Sign out
             </button>
           </form>
         </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import Icon from '@/components/Icon';
 
 /**
  * Unread notifications, kept live over Supabase Realtime so a customer sees a
@@ -60,7 +61,7 @@ export default function NotificationBell({ userId }) {
         aria-expanded={open}
         aria-label={`Notifications${items.length ? `, ${items.length} unread` : ''}`}
       >
-        <span aria-hidden>🔔</span>
+        <Icon name="bell" size={18} />
         {items.length > 0 && <span className="bell__count">{items.length}</span>}
       </button>
 

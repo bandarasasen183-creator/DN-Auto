@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { isBookableOnline } from '@/lib/business';
+import Icon from '@/components/Icon';
 
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 const MONTHS = [
@@ -80,7 +81,7 @@ export default function Calendar({ value, onChange, monthsAhead = 3 }) {
           disabled={!canGoBack}
           aria-label="Previous month"
         >
-          ‹
+          <Icon name="chevronLeft" size={18} />
         </button>
         <strong className="cal__month" aria-live="polite">
           {MONTHS[cursor.getMonth()]} {cursor.getFullYear()}
@@ -92,7 +93,7 @@ export default function Calendar({ value, onChange, monthsAhead = 3 }) {
           disabled={!canGoForward}
           aria-label="Next month"
         >
-          ›
+          <Icon name="chevronRight" size={18} />
         </button>
       </div>
 

@@ -4,7 +4,7 @@ import StatusPill from '@/components/StatusPill';
 import { requireRole } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import { ADMIN_NAV } from '../nav';
-import { STATUS_LABELS } from '@/lib/business';
+import Icon from '@/components/Icon';
 
 export const metadata = { title: 'Bookings' };
 
@@ -38,6 +38,10 @@ export default async function AdminBookings({ searchParams }) {
 
   if (filter !== 'all') query = query.eq('status', filter);
 
+  // Reference search — the number the customer reads out over the phone.
+  const term = (searchParams?.q ?? '').trim();
+  if (term) query = query.ilike('reference', `%${term}%`);
+
   const { data: bookings } = await query;
 
   return (
@@ -48,7 +52,19 @@ export default async function AdminBookings({ searchParams }) {
       title="Bookings"
       subtitle="Every job in the diary. Open one to assign a mechanic or build a quote."
     >
-      <div className="tabs rise">
+      <form className="searchbar rise" action="/admin/bookings">
+        <Icon name="search" size={18} />
+        <input
+          className="searchbar__input"
+          name="q"
+          defaultValue={searchParams?.q ?? ''}
+          placeholder="Search by booking reference, e.g. DN-2609"
+          aria-label="Search bookings"
+        />
+        <button type="submit" className="btn small">Search</button>
+      </form>
+
+      <div className="tabs rise" style={{ marginTop: '1rem' }}>
         {FILTERS.map((f) => (
           <Link
             key={f.key}
@@ -76,7 +92,7 @@ export default async function AdminBookings({ searchParams }) {
           </thead>
           <tbody>
             {(bookings ?? []).length === 0 ? (
-              <tr><td colSpan={7} className="muted center">No bookings match this filter.</td></tr>
+              <tr><td colSpan={7} className="muted center">No bookings match that.</td></tr>
             ) : (
               bookings.map((b) => (
                 <tr key={b.id}>
@@ -101,9 +117,7 @@ export default async function AdminBookings({ searchParams }) {
         </table>
       </div>
 
-      <p className="small muted" style={{ marginTop: '1rem' }}>
-        Statuses: {Object.values(STATUS_LABELS).join(' · ')}
-      </p>
+
     </PortalShell>
   );
 }

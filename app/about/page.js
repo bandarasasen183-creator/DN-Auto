@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getSessionUser, ROLE_HOME } from '@/lib/auth/session';
 import { BUSINESS, PROMISES } from '@/lib/business';
+import Icon from '@/components/Icon';
 import Reveal from '@/components/Reveal';
 import SiteHeader from '@/components/site/SiteHeader';
 import SiteFooter from '@/components/site/SiteFooter';
@@ -73,6 +74,7 @@ export default async function AboutPage() {
             <div className="grid cols-4" style={{ marginTop: '2rem' }}>
               {PROMISES.map((p) => (
                 <article key={p.title} className="card card--hover reveal">
+                  <span className="promise__icon" aria-hidden><Icon name={p.icon} size={22} /></span>
                   <h3>{p.title}</h3>
                   <p className="small muted" style={{ margin: 0 }}>{p.body}</p>
                 </article>

@@ -2,14 +2,15 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Icon from '@/components/Icon';
 import VoicePanel from './VoicePanel';
 import HistoryPanel from './HistoryPanel';
 
 const TABS = [
-  { key: 'chat', label: 'Chat', icon: '💬' },
-  { key: 'voice', label: 'Voice', icon: '🎙' },
-  { key: 'forms', label: 'Forms', icon: '📋' },
-  { key: 'history', label: 'History', icon: '🕘' },
+  { key: 'chat', label: 'Chat', icon: 'chat' },
+  { key: 'voice', label: 'Voice', icon: 'mic' },
+  { key: 'forms', label: 'Forms', icon: 'form' },
+  { key: 'history', label: 'History', icon: 'history' },
 ];
 
 const QUICK_ACTIONS = [
@@ -126,7 +127,7 @@ export default function DnAssist({ signedIn }) {
         aria-expanded={open}
         aria-label={open ? 'Close DN Assist' : 'Open DN Assist'}
       >
-        <span aria-hidden>{open ? '✕' : 'DN'}</span>
+        {open ? <Icon name="close" size={22} /> : <span aria-hidden>DN</span>}
       </button>
 
       {open && (
@@ -142,7 +143,7 @@ export default function DnAssist({ signedIn }) {
               </div>
             </div>
             <button type="button" className="assist__close" onClick={() => setOpen(false)} aria-label="Close">
-              ✕
+              <Icon name="close" size={16} />
             </button>
           </header>
 
@@ -155,7 +156,7 @@ export default function DnAssist({ signedIn }) {
                 data-active={tab === t.key}
                 onClick={() => setTab(t.key)}
               >
-                <span aria-hidden>{t.icon}</span> {t.label}
+                <Icon name={t.icon} size={16} /> {t.label}
               </button>
             ))}
           </nav>
@@ -207,8 +208,8 @@ export default function DnAssist({ signedIn }) {
                       aria-label="Message DN Assist"
                       disabled={busy}
                     />
-                    <button type="submit" className="btn" disabled={busy || !input.trim()}>
-                      Send
+                    <button type="submit" className="btn" disabled={busy || !input.trim()} aria-label="Send">
+                      <Icon name="send" size={18} />
                     </button>
                   </form>
                 </>

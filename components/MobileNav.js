@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { BUSINESS } from '@/lib/business';
+import Icon from '@/components/Icon';
 
 /**
  * The portal sidebar becomes a slide-in drawer below 960px, where the sidebar
@@ -32,7 +33,7 @@ export default function MobileNav({ nav, current, profile }) {
           onClick={() => setOpen(true)}
           aria-label="Open navigation"
         >
-          ☰
+          <Icon name="menu" size={22} />
         </button>
         <strong style={{ letterSpacing: '0.08em' }}>{BUSINESS.shortName.toUpperCase()}</strong>
         <span className="small muted">{profile.full_name.split(' ')[0]}</span>
@@ -42,7 +43,7 @@ export default function MobileNav({ nav, current, profile }) {
         <div className="drawer" role="dialog" aria-label="Navigation">
           <button type="button" className="drawer__scrim" onClick={() => setOpen(false)} aria-label="Close navigation" />
           <nav className="drawer__panel">
-            <button type="button" className="drawer__close" onClick={() => setOpen(false)} aria-label="Close">✕</button>
+            <button type="button" className="drawer__close" onClick={() => setOpen(false)} aria-label="Close"><Icon name="close" size={18} /></button>
             <ul style={{ listStyle: 'none', margin: '2rem 0 0', padding: 0, display: 'grid', gap: '0.25rem' }}>
               {nav.map((item) => (
                 <li key={item.href}>
@@ -52,7 +53,7 @@ export default function MobileNav({ nav, current, profile }) {
                     aria-current={item.href === current ? 'page' : undefined}
                     onClick={() => setOpen(false)}
                   >
-                    <span aria-hidden>{item.icon}</span> {item.label}
+                    <Icon name={item.icon} size={18} /> {item.label}
                   </Link>
                 </li>
               ))}

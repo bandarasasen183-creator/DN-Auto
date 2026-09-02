@@ -9,7 +9,8 @@ actually register — nothing in the code hard-codes it.
 
 1. Create a project at [supabase.com](https://supabase.com) (pick the region
    closest to Sri Lanka — Singapore, `ap-southeast-1`).
-2. SQL editor → run `supabase/schema.sql`, then `supabase/seed.sql`.
+2. SQL editor → run in order: `supabase/schema.sql`, then every file in
+   `supabase/migrations/` by number, then `supabase/seed.sql`.
 3. **Database → Replication** → enable Realtime on the `notifications` table.
    Without this the notification bell still works, it just won't update live.
 4. **Authentication → URL Configuration**:
