@@ -147,7 +147,10 @@ Refunds are their own rows against the payment they reverse, never an edit, so
 the ledger stays append-only and every figure traces back to who did what.
 
 Tablets live on `pay.dnauto.lk`, which opens billing and nothing else, so a
-machine left on the counter cannot wander into the rest of the portal.
+machine left on the counter cannot wander into the rest of the portal. They
+install to the Android home screen as a web app — see [TABLETS.md](TABLETS.md)
+for setting up the Kogan Explore Tab 10.1" units, including screen pinning and
+how takings are split per mechanic and per bay.
 
 ## Payments
 

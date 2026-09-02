@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import Icon from '@/components/Icon';
+import KeepAwake from '@/components/KeepAwake';
 import { settleTerminalRequest } from '../../../actions';
 import { formatLKR, BUSINESS } from '@/lib/business';
 
@@ -27,6 +28,7 @@ export default function TerminalScreen({ request, mode, returnPath }) {
 
   return (
     <main className="terminal">
+      <KeepAwake />
       <div className="terminal__card">
         <p className="terminal__brand">{BUSINESS.name}</p>
 

@@ -2262,3 +2262,73 @@ a, button, .pick, .slot, .cal__day { touch-action: manipulation; }
   }
   .receipt .pill { border: 1px solid #999; background: none !important; color: #000 !important; }
 }
+
+/* =====================================================================
+   Workshop tablets — Kogan Explore Tab 10.1"
+   ---------------------------------------------------------------------
+   A 10.1" Android tablet at roughly 800×1280 physical, which lands around
+   800px of CSS width in landscape. That is wider than a phone but narrower
+   than a laptop, and it falls awkwardly between the breakpoints, so the
+   billing screens get their own rules. It is used standing up, one-handed,
+   with oily fingers through a screen protector — which costs real touch
+   accuracy, so targets here are larger than the desktop equivalents.
+   ===================================================================== */
+
+@media (pointer: coarse) {
+  /* Android's own guidance is 48dp; a screen protector argues for more. */
+  .btn { min-height: 52px; padding-block: 0.95rem; }
+  .btn--lg { min-height: 62px; }
+  .btn.small { min-height: 44px; }
+
+  .input, .select { min-height: 52px; }
+  .tab { min-height: 46px; display: inline-flex; align-items: center; }
+  .slot { min-height: 52px; }
+  .cal__day { font-size: 1rem; }
+  .cal__nav { width: 44px; height: 44px; }
+
+  /* Rows in the bill list become properly tappable. */
+  .table td, .table th { padding-block: 0.85rem; }
+
+  /* Nothing on a till screen should be selectable by a long press — it only
+     ever produces a highlight the mechanic then has to dismiss. */
+  .terminal, .paypanel, .bay__job, .notilist__item {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .terminal .input, .paypanel .input { user-select: text; }
+}
+
+/* The tablet in landscape: one column would waste half the screen, two full
+   desktop columns would crush the bill lines. */
+@media (min-width: 700px) and (max-width: 1100px) and (pointer: coarse) {
+  .billline { grid-template-columns: 1fr 1fr; }
+  .billline .field:nth-child(2) { grid-column: 1 / -1; }
+
+  .paypanel { position: static; }
+}
+
+/* Landscape on a short screen: the terminal amount must not push the buttons
+   below the fold, because the mechanic cannot scroll with a card machine in
+   one hand. */
+@media (orientation: landscape) and (max-height: 820px) {
+  .terminal { padding: 1rem; }
+  .terminal__brand { margin-bottom: 1rem; }
+  .terminal__amount { font-size: clamp(2.5rem, 8vh, 4rem); }
+  .terminal__ref { margin-bottom: 1rem; }
+  .terminal__wait, .terminal__manual { margin-bottom: 1rem; padding: 0.75rem 1rem; }
+  .terminal__back { margin-top: 1rem; }
+}
+
+/* Installed to the home screen, there is no browser chrome to sit under, so
+   the safe-area insets become ours to respect. */
+@media (display-mode: standalone) {
+  body { padding: env(safe-area-inset-top) env(safe-area-inset-right)
+                 env(safe-area-inset-bottom) env(safe-area-inset-left); }
+  .sitehead { top: env(safe-area-inset-top); }
+}
+
+/* A budget tablet has a modest GPU. Blur is the most expensive thing on the
+   page, so drop it where the hardware is likely to be weakest. */
+@media (pointer: coarse) and (max-width: 1100px) {
+  .sitehead { backdrop-filter: none; background: rgb(11 14 19 / 0.97); }
+}

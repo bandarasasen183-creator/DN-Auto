@@ -21,12 +21,30 @@ export const metadata = {
       'Certified petrol-vehicle repairs in Kadawatha since 2019, with a 6-month parts warranty.',
   },
   robots: { index: true, follow: true },
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    title: BUSINESS.shortName,
+    statusBarStyle: 'black-translucent',
+  },
+  icons: {
+    icon: [
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export const viewport = {
   themeColor: '#0b0e13',
   width: 'device-width',
   initialScale: 1,
+  // The workshop tablets are handled with oily fingers through a screen
+  // protector, so a stray pinch must not leave the till screen zoomed in.
+  // Zoom stays available on the public site, where people may need it.
+  maximumScale: 5,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }) {

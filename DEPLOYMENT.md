@@ -90,7 +90,8 @@ point the domain at Vercel — .lk resellers usually do this for you.
 | `pay` | CNAME | `cname.vercel-dns.com` |
 | `admin` | CNAME | `cname.vercel-dns.com` |
 
-`pay` is the host for the workshop tablets — it opens billing directly.
+`pay` is the host for the workshop tablets — it opens billing directly, and is
+the address the tablets install from. See [TABLETS.md](TABLETS.md).
 
 ### dnauto.org — the alias
 
