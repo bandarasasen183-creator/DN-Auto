@@ -1,8 +1,20 @@
 # Deploying DN Auto
 
-The domain is **dnauto.org**, registered with Spaceship. It is set in one
-place — `ROOT_DOMAIN` in `lib/domains.js` — and can be overridden per
-environment with `NEXT_PUBLIC_ROOT_DOMAIN`.
+Two domains are registered:
+
+| Domain | Registrar | Role |
+|---|---|---|
+| **dnauto.lk** | BuyDomains.LK (PEEK Hosting) | The canonical site — everything lives here |
+| dnauto.org | Spaceship | Alias, permanently redirected to the .lk |
+
+The .lk is primary because a Sri Lankan workshop ranks better locally on it and
+customers in Kadawatha will trust it. Both are set in one place —
+`ROOT_DOMAIN` and `ALIAS_DOMAINS` in `lib/domains.js` — overridable per
+environment with `NEXT_PUBLIC_ROOT_DOMAIN` and `NEXT_PUBLIC_ALIAS_DOMAINS`.
+
+The redirect is handled in `middleware.js` before any session work, keeps the
+subdomain (`admin.dnauto.org` → `admin.dnauto.lk`) and uses a 308, so search
+engines fold the alias into the canonical domain rather than ranking both.
 
 ---
 
@@ -15,15 +27,15 @@ environment with `NEXT_PUBLIC_ROOT_DOMAIN`.
 3. **Database → Replication** → enable Realtime on the `notifications` table.
    Without this the notification bell still works, it just won't update live.
 4. **Authentication → URL Configuration**:
-   - Site URL: `https://dnauto.org`
+   - Site URL: `https://dnauto.lk`
    - Redirect URLs — add every host the app runs on. Miss one and logins fail
      silently on that host:
      ```
-     https://dnauto.org/auth/callback
-     https://www.dnauto.org/auth/callback
-     https://customer.dnauto.org/auth/callback
-     https://workers.dnauto.org/auth/callback
-     https://admin.dnauto.org/auth/callback
+     https://dnauto.lk/auth/callback
+     https://www.dnauto.lk/auth/callback
+     https://customer.dnauto.lk/auth/callback
+     https://workers.dnauto.lk/auth/callback
+     https://admin.dnauto.lk/auth/callback
      http://localhost:3000/auth/callback
      ```
 5. Copy the project URL and anon key from **Settings → API**.
@@ -36,7 +48,8 @@ environment with `NEXT_PUBLIC_ROOT_DOMAIN`.
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Everywhere | Yes |
 | `SUPABASE_SERVICE_ROLE_KEY` | Reserved for admin scripts. **Never** expose it to the browser | No |
 | `ANTHROPIC_API_KEY` | DN Assist. Without it the assistant returns a clear "not configured" message rather than failing | No |
-| `NEXT_PUBLIC_ROOT_DOMAIN` | Overrides `dnauto.org`, e.g. on a staging deploy | No |
+| `NEXT_PUBLIC_ROOT_DOMAIN` | Overrides `dnauto.lk`, e.g. on a staging deploy | No |
+| `NEXT_PUBLIC_ALIAS_DOMAINS` | Comma-separated domains that redirect to the canonical one | No |
 | `NEXT_PUBLIC_SITE_URL` | Absolute base for canonical links and the sitemap | No |
 | `WEBXPAY_MERCHANT_ID` / `WEBXPAY_SECRET` | WEBXPAY adapter | When going live |
 | `KOKO_MERCHANT_ID` / `KOKO_SECRET` | Koko adapter | When going live |
@@ -60,12 +73,11 @@ One deployment serves all three portals — do **not** deploy the app three
 times. Point every host at the same deployment and the middleware sorts out
 who sees what.
 
-**Where the DNS lives.** The domain is at Spaceship, so records are edited in
-**Spaceship → Domain List → dnauto.org → Manage → Advanced DNS**. Leave the
-nameservers on Spaceship's default (Spaceship DNS) — you do not need to move
-them to Vercel.
+### dnauto.lk — the real site
 
-**Records** — all pointing at the same deployment:
+DNS for the .lk is managed through **BuyDomains.LK**, in your account's domain
+control panel. If they don't expose DNS records directly, ask their support to
+point the domain at Vercel — .lk resellers usually do this for you.
 
 | Host | Type | Value |
 |---|---|---|
@@ -75,9 +87,22 @@ them to Vercel.
 | `workers` | CNAME | `cname.vercel-dns.com` |
 | `admin` | CNAME | `cname.vercel-dns.com` |
 
-Vercel shows the exact apex value to use on the Domains screen — use whatever
-it gives you rather than the number above if they differ. Then add all five
-host names as domains on the **same** Vercel project.
+### dnauto.org — the alias
+
+**Spaceship → Domain List → dnauto.org → Manage → Advanced DNS.** Leave the
+nameservers on Spaceship's default.
+
+| Host | Type | Value |
+|---|---|---|
+| `@` | A | `76.76.21.21` |
+| `www` | CNAME | `cname.vercel-dns.com` |
+
+Add it to the same Vercel project. Do **not** set up Vercel's own redirect —
+`middleware.js` already handles it and keeps the path and subdomain intact.
+
+Vercel shows the exact apex value on its Domains screen — use whatever it
+gives you if it differs from the number above. Every host above goes on the
+**same** Vercel project.
 
 DNS changes at Spaceship usually take effect within an hour, occasionally up
 to 24. HTTPS certificates are issued by Vercel automatically once each host

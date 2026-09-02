@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
-import { portalForHost } from '@/lib/domains';
+import { portalForHost, canonicalHostFor } from '@/lib/domains';
 
 const PROTECTED = [
   { prefix: '/portal', roles: ['customer'] },
@@ -11,6 +11,19 @@ const PROTECTED = [
 const ROLE_HOME = { customer: '/portal', worker: '/worker', admin: '/admin' };
 
 export async function middleware(request) {
+  // An alias domain redirects before anything else — no session work, no
+  // database call, and a 308 so search engines fold it into the canonical
+  // domain instead of ranking both.
+  const host = request.headers.get('host');
+  const canonical = canonicalHostFor(host);
+  if (canonical) {
+    const url = request.nextUrl.clone();
+    url.host = canonical;
+    url.port = '';
+    url.protocol = 'https:';
+    return NextResponse.redirect(url, 308);
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -42,7 +55,7 @@ export async function middleware(request) {
   const { pathname, search } = request.nextUrl;
 
   // --- Subdomain -> portal rewrite -----------------------------------
-  const portal = portalForHost(request.headers.get('host'));
+  const portal = portalForHost(host);
   if (portal && pathname === '/') {
     const url = request.nextUrl.clone();
     url.pathname = portal;

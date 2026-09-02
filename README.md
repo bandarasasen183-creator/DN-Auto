@@ -99,13 +99,14 @@ Defined once in `lib/business.js` and validated server-side:
 
 ## Subdomains
 
-The domain is **dnauto.org** (registered with Spaceship), set once as
-`ROOT_DOMAIN` in `lib/domains.js`.
+The canonical domain is **dnauto.lk** (BuyDomains.LK); **dnauto.org**
+(Spaceship) is an alias that redirects to it with a 308, keeping the path and
+subdomain. Both are set once in `lib/domains.js`.
 
 `middleware.js` maps `customer.` / `workers.` / `admin.` hosts to the right
 portal, so the three portals split across subdomains without a code change —
 only DNS and the host mapping table need updating. See
-[DEPLOYMENT.md](DEPLOYMENT.md) for the exact Spaceship records.
+[DEPLOYMENT.md](DEPLOYMENT.md) for the DNS records at both registrars.
 
 ## Discounts
 
