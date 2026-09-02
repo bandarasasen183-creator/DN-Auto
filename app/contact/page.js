@@ -31,8 +31,8 @@ export default async function ContactPage() {
           <p className="hero__eyebrow rise">Contact</p>
           <h1 className="rise rise-1">Come and see us</h1>
           <p className="hero__lead rise rise-2">
-            We&apos;re on Church Rd in {address.city}. Sunday is our main service day — book a
-            slot and we&apos;ll have a mechanic ready for you.
+            We&apos;re on Church Rd in {address.city}. Sunday is our service day — book a slot
+            online and we&apos;ll have a mechanic ready for you.
           </p>
         </div>
       </section>
@@ -108,8 +108,9 @@ export default async function ContactPage() {
                 ))}
               </ul>
               <p className="small muted" style={{ marginBottom: 0 }}>
-                Weekday evenings from 6:00 PM are kept for existing customers with an
-                emergency repair. Closed Saturdays.
+                Online booking is for Sunday appointments. Weekday evenings from 6:00 PM are
+                emergency repairs for existing customers — call the workshop for those, as we
+                need to confirm a mechanic is free before you set off. Closed Saturdays.
               </p>
             </div>
           </div>
@@ -133,7 +134,7 @@ export default async function ContactPage() {
               </p>
               <div className="row" style={{ flexWrap: 'wrap' }}>
                 <Link href={bookHref} className="btn">Book a service</Link>
-                <Link href="/services" className="btn btn--ghost">See prices</Link>
+                <Link href="/services" className="btn btn--ghost">Our services</Link>
               </div>
             </div>
           </div>

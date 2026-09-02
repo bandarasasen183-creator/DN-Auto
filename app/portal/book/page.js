@@ -10,7 +10,7 @@ export default async function BookPage() {
   const { profile } = await requireRole('customer', { from: '/portal/book' });
   const supabase = createClient();
 
-  const [{ data: services }, { data: vehicles }, { count }] = await Promise.all([
+  const [{ data: services }, { data: vehicles }] = await Promise.all([
     supabase
       .from('services')
       .select('id, name, description, base_price_cents, price_is_from')
@@ -21,10 +21,6 @@ export default async function BookPage() {
       .select('id, make, model, year, registration')
       .eq('owner_id', profile.id)
       .order('created_at', { ascending: false }),
-    supabase
-      .from('bookings')
-      .select('id', { count: 'exact', head: true })
-      .eq('customer_id', profile.id),
   ]);
 
   return (
@@ -33,13 +29,9 @@ export default async function BookPage() {
       nav={CUSTOMER_NAV}
       current="/portal/book"
       title="Book a service"
-      subtitle="Five short steps. You can go back and change anything before you confirm."
+      subtitle="Five short steps, Sunday appointments. You can change anything before you confirm."
     >
-      <BookingWizard
-        services={services ?? []}
-        vehicles={vehicles ?? []}
-        isExistingCustomer={(count ?? 0) > 0}
-      />
+      <BookingWizard services={services ?? []} vehicles={vehicles ?? []} />
     </PortalShell>
   );
 }

@@ -1534,3 +1534,148 @@ a {
   color: var(--steel-400);
 }
 .sitefoot__scope { color: var(--ink-500); }
+
+/* =====================================================================
+   Calendar date picker
+   ===================================================================== */
+
+.booksplit {
+  display: grid;
+  gap: 1.75rem;
+  margin-top: 1rem;
+}
+@media (min-width: 780px) {
+  .booksplit { grid-template-columns: minmax(0, 320px) minmax(0, 1fr); }
+}
+
+.cal {
+  border: 1px solid var(--steel-200);
+  border-radius: var(--r-md);
+  padding: 1rem;
+  background: #fff;
+}
+
+.cal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.cal__month {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.cal__nav {
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  border: 1px solid var(--steel-200);
+  border-radius: var(--r-sm);
+  background: #fff;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease);
+}
+.cal__nav:hover:not(:disabled) { border-color: var(--amber-500); background: rgb(245 165 36 / 0.08); }
+.cal__nav:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.cal__weekdays,
+.cal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.cal__weekdays {
+  margin-bottom: 6px;
+}
+.cal__weekdays span {
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--steel-400);
+}
+
+.cal__blank { aspect-ratio: 1; }
+
+.cal__day {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--steel-300);
+  cursor: not-allowed;
+  transition: transform var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+/* Days we actually take bookings on read as buttons; the rest stay visible
+   but obviously inert, so nobody wonders why their click did nothing. */
+.cal__day[data-open='true'] {
+  background: rgb(245 165 36 / 0.1);
+  border-color: rgb(245 165 36 / 0.35);
+  color: var(--ink-800);
+  font-weight: 600;
+  cursor: pointer;
+}
+.cal__day[data-open='true']:hover {
+  background: rgb(245 165 36 / 0.22);
+  transform: translateY(-2px);
+}
+
+.cal__day[data-selected='true'] {
+  background: var(--ink-800);
+  border-color: var(--ink-800);
+  color: #fff;
+  box-shadow: 0 0 0 3px rgb(245 165 36 / 0.28);
+}
+
+.cal__day[data-today='true'] { text-decoration: underline; text-underline-offset: 3px; }
+
+.cal__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.9rem 0 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--steel-100);
+}
+
+.cal__dot {
+  width: 12px; height: 12px;
+  border-radius: 3px;
+  background: rgb(245 165 36 / 0.25);
+  border: 1px solid rgb(245 165 36 / 0.5);
+}
+
+.cal__jump {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--amber-600);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.slots__head {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ink-700);
+}

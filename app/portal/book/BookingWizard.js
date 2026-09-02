@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import ProgressBar from '@/components/ProgressBar';
+import Calendar from '@/components/Calendar';
 import { createBooking } from '../actions';
 import { formatLKR, validateSlot, HOURS, EXCLUSIONS } from '@/lib/business';
 
@@ -24,7 +25,7 @@ function slotsFor(dateString) {
   return times;
 }
 
-export default function BookingWizard({ services, vehicles, isExistingCustomer }) {
+export default function BookingWizard({ services, vehicles }) {
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
     service_id: '',
@@ -50,8 +51,8 @@ export default function BookingWizard({ services, vehicles, isExistingCustomer }
 
   const slotCheck = useMemo(() => {
     if (!form.date || !form.time) return null;
-    return validateSlot(new Date(`${form.date}T${form.time}`), { isExistingCustomer });
-  }, [form.date, form.time, isExistingCustomer]);
+    return validateSlot(new Date(`${form.date}T${form.time}`));
+  }, [form.date, form.time]);
 
   /** Picking a saved vehicle fills the manual fields, so step 5 can show them. */
   function chooseVehicle(id) {
@@ -117,8 +118,6 @@ export default function BookingWizard({ services, vehicles, isExistingCustomer }
       </div>
     );
   }
-
-  const today = new Date().toISOString().slice(0, 10);
 
   return (
     <div className="wizard">
@@ -208,47 +207,56 @@ export default function BookingWizard({ services, vehicles, isExistingCustomer }
         {/* ---- 3. Date & time ---- */}
         {step === 2 && (
           <>
-            <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
-              <label className="field">
-                <span>Date</span>
-                <input
-                  className="input"
-                  type="date"
-                  min={today}
-                  value={form.date}
-                  onChange={(e) => setForm((f) => ({ ...f, date: e.target.value, time: '' }))}
-                />
-              </label>
-            </div>
+            <p className="small muted">
+              Appointments are booked on Sundays, 8:00 AM to 5:00 PM. Pick a date, then a time.
+            </p>
 
-            {form.date && times.length === 0 && (
-              <p className="form-error">We&apos;re closed that day. Sunday is our main service day.</p>
-            )}
+            <div className="booksplit">
+              <Calendar
+                value={form.date}
+                onChange={(date) => setForm((f) => ({ ...f, date, time: '' }))}
+              />
 
-            {times.length > 0 && (
-              <div className="slots">
-                {times.map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    className="slot"
-                    data-selected={form.time === t}
-                    onClick={() => setForm((f) => ({ ...f, time: t }))}
-                  >
-                    {t}
-                  </button>
-                ))}
+              <div>
+                <h4 className="slots__head">
+                  {form.date
+                    ? new Date(`${form.date}T00:00`).toLocaleDateString('en-LK', {
+                        weekday: 'long', day: 'numeric', month: 'long',
+                      })
+                    : 'Choose a date first'}
+                </h4>
+
+                {times.length > 0 ? (
+                  <div className="slots">
+                    {times.map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        className="slot"
+                        data-selected={form.time === t}
+                        onClick={() => setForm((f) => ({ ...f, time: t }))}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="small muted">
+                    Available times appear here once you pick a date.
+                  </p>
+                )}
               </div>
-            )}
+            </div>
 
             {slotCheck && !slotCheck.ok && (
               <p className="form-error" style={{ marginTop: '1rem' }}>{slotCheck.reason}</p>
             )}
-            {slotCheck?.ok && slotCheck.isEmergency && (
-              <p className="form-note" style={{ marginTop: '1rem' }}>
-                Weekday evening slot — this is booked as an emergency repair.
-              </p>
-            )}
+
+            <p className="small muted" style={{ marginTop: '1rem' }}>
+              Broken down or need an emergency repair on a weekday evening? Those are arranged
+              by phone with the workshop — we cannot take them through the app, because someone
+              has to confirm a mechanic is free before you drive over.
+            </p>
           </>
         )}
 

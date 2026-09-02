@@ -151,8 +151,8 @@ export default async function HomePage() {
                 ))}
               </ul>
               <p className="small" style={{ color: 'var(--steel-400)' }}>
-                Sunday is our main service day. Weekday evenings are kept free for existing
-                customers with an emergency.
+                Appointments are booked online for Sundays. Weekday evenings are emergency
+                repairs for existing customers, arranged by phone with the workshop.
               </p>
             </div>
 

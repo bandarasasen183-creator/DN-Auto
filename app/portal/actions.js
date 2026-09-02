@@ -64,16 +64,9 @@ export async function createBooking(_prevState, formData) {
 
   const scheduledFor = new Date(`${date}T${time}`);
 
-  // Weekday evenings are for existing customers only, so we need to know
-  // whether this person has been here before.
-  const { count: previousBookings } = await supabase
-    .from('bookings')
-    .select('id', { count: 'exact', head: true })
-    .eq('customer_id', profile.id);
-
-  const slot = validateSlot(scheduledFor, {
-    isExistingCustomer: (previousBookings ?? 0) > 0,
-  });
+  // Sunday only online — validateSlot refuses weekday evenings and points the
+  // customer at the phone, because an emergency needs a human to confirm it.
+  const slot = validateSlot(scheduledFor);
   if (!slot.ok) return { error: slot.reason };
 
   let vehicleId;
