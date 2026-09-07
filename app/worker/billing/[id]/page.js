@@ -9,6 +9,7 @@ import { BUSINESS, formatLKR } from '@/lib/business';
 import PrintButton from '@/components/PrintButton';
 import PaymentPanel from './PaymentPanel';
 import RefundPanel from './RefundPanel';
+import EmailPanel from './EmailPanel';
 
 export const metadata = { title: 'Bill' };
 
@@ -22,8 +23,9 @@ export default async function InvoicePage({ params, searchParams }) {
     .from('invoices')
     .select(`
       id, number, status, subtotal_cents, discount_cents, tax_cents, total_cents,
-      paid_cents, refunded_cents, customer_name, customer_phone, vehicle_note,
-      notes, created_at, booking_id,
+      paid_cents, refunded_cents, customer_name, customer_phone, customer_email,
+      vehicle_note, registration, performed_by_name, signature_png, signed_name,
+      signed_at, notes, created_at, booking_id,
       invoice_items(id, description, kind, quantity, unit_price_cents, warranty_months, sort_order),
       promotions(name, code),
       issuer:profiles!invoices_issued_by_fkey(full_name)
@@ -33,7 +35,7 @@ export default async function InvoicePage({ params, searchParams }) {
 
   if (!invoice) notFound();
 
-  const [{ data: payments }, { data: refunds }] = await Promise.all([
+  const [{ data: payments }, { data: refunds }, { data: warranties }] = await Promise.all([
     supabase
       .from('payments')
       .select('id, provider, status, amount_cents, provider_reference, paid_at')
@@ -44,6 +46,11 @@ export default async function InvoicePage({ params, searchParams }) {
       .select('id, amount_cents, reason, created_at, refunded_by, profiles:refunded_by(full_name)')
       .eq('invoice_id', invoice.id)
       .order('created_at', { ascending: false }),
+    supabase
+      .from('warranties')
+      .select('id, number, description, months, starts_on, expires_on, fitted_by_name, is_void')
+      .eq('invoice_id', invoice.id)
+      .order('expires_on', { ascending: false }),
   ]);
 
   const items = [...(invoice.invoice_items ?? [])].sort((a, b) => a.sort_order - b.sort_order);
@@ -94,7 +101,13 @@ export default async function InvoicePage({ params, searchParams }) {
             <div className="receipt__meta small">
               <span><strong>Customer:</strong> {invoice.customer_name ?? 'Walk-in'}</span>
               {invoice.customer_phone && <span><strong>Phone:</strong> {invoice.customer_phone}</span>}
+              {invoice.registration && (
+                <span><strong>Registration:</strong> {invoice.registration}</span>
+              )}
               {invoice.vehicle_note && <span><strong>Vehicle:</strong> {invoice.vehicle_note}</span>}
+              {invoice.performed_by_name && (
+                <span><strong>Work by:</strong> {invoice.performed_by_name}</span>
+              )}
             </div>
 
             <div className="table-wrap">
@@ -146,9 +159,45 @@ export default async function InvoicePage({ params, searchParams }) {
 
             {invoice.notes && <p className="small muted">{invoice.notes}</p>}
 
+            {/* Printed on the receipt so the customer leaves holding the
+                warranty number, rather than having to ring up and describe
+                the part months later. */}
+            {(warranties ?? []).length > 0 && (
+              <section className="receipt__warranty">
+                <h4>Warranty</h4>
+                <ul className="small">
+                  {warranties.map((w) => (
+                    <li key={w.id}>
+                      <strong>{w.description}</strong> — {w.months} months, covered until{' '}
+                      {new Date(w.expires_on).toLocaleDateString('en-LK', { dateStyle: 'long' })}
+                      <br />
+                      <span className="muted">
+                        No. {w.number}
+                        {w.fitted_by_name ? ` · fitted by ${w.fitted_by_name}` : ''}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {invoice.signed_at && invoice.signature_png && (
+              <section className="receipt__signature">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={invoice.signature_png} alt="Customer signature" />
+                <p className="small muted">
+                  Signed by {invoice.signed_name ?? 'the customer'} ·{' '}
+                  {new Date(invoice.signed_at).toLocaleString('en-LK', {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                  })}
+                </p>
+              </section>
+            )}
+
             <p className="small muted receipt__foot">
-              Parts carry a {BUSINESS.partsWarrantyMonths}-month minimum warranty. Thank you
-              for your business.
+              Parts carry a {BUSINESS.partsWarrantyMonths}-month minimum warranty unless
+              a line above says otherwise. Thank you for your business.
             </p>
           </section>
 
@@ -204,7 +253,21 @@ export default async function InvoicePage({ params, searchParams }) {
 
         <aside className="stack rise rise-2" style={{ '--gap': '1.5rem' }}>
           {outstanding > 0 ? (
-            <PaymentPanel invoiceId={invoice.id} outstandingCents={outstanding} />
+            <>
+              {/* The normal route: hand the tablet over, they pick how they
+                  paid and sign for it. The panel below stays for the times
+                  somebody needs to record a part-payment by hand. */}
+              <section className="card center">
+                <h3 style={{ marginTop: 0 }}>{formatLKR(outstanding)} to pay</h3>
+                <Link href={`/worker/billing/${invoice.id}/confirm`} className="btn btn--lg">
+                  Take payment <Icon name="arrowRight" size={16} />
+                </Link>
+                <p className="small muted" style={{ marginBottom: 0 }}>
+                  Opens the customer&apos;s screen — method, then signature.
+                </p>
+              </section>
+              <PaymentPanel invoiceId={invoice.id} outstandingCents={outstanding} />
+            </>
           ) : (
             <section className="card center">
               <div className="tick" aria-hidden><Icon name="check" size={28} /></div>
@@ -213,6 +276,8 @@ export default async function InvoicePage({ params, searchParams }) {
               <PrintButton />
             </section>
           )}
+
+          <EmailPanel invoice={invoice} />
 
           {invoice.booking_id && (
             <section className="card">

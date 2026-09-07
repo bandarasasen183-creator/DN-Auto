@@ -1,0 +1,261 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
+import Icon from '@/components/Icon';
+import KeepAwake from '@/components/KeepAwake';
+import { formatLKR } from '@/lib/business';
+import { completeHandover, releaseHandover } from '../../actions';
+
+const METHODS = [
+  { value: 'webxpay', label: 'Card', icon: 'receipt', hint: 'Taken on the machine' },
+  { value: 'cash', label: 'Cash', icon: 'cash', hint: 'Into the till' },
+  { value: 'bank_transfer', label: 'Transfer', icon: 'send', hint: 'Straight to the account' },
+];
+
+/**
+ * Signature pad.
+ *
+ * Drawn with pointer events so a finger, a stylus and a mouse all behave
+ * the same. The canvas is sized to its box at device pixel ratio —
+ * without that, a signature on a 10" tablet comes out as a blurry smear.
+ */
+function SignaturePad({ onChange }) {
+  const canvasRef = useRef(null);
+  const drawing = useRef(false);
+  const dirty = useRef(false);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      canvas.width = rect.width * ratio;
+      canvas.height = rect.height * ratio;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(ratio, ratio);
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#1c1917';
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+    return () => window.removeEventListener('resize', resize);
+  }, []);
+
+  function position(event) {
+    const rect = canvasRef.current.getBoundingClientRect();
+    return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+  }
+
+  function start(event) {
+    event.preventDefault();
+    const canvas = canvasRef.current;
+    canvas.setPointerCapture(event.pointerId);
+    drawing.current = true;
+    const { x, y } = position(event);
+    const ctx = canvas.getContext('2d');
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  }
+
+  function move(event) {
+    if (!drawing.current) return;
+    event.preventDefault();
+    const { x, y } = position(event);
+    const ctx = canvasRef.current.getContext('2d');
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    dirty.current = true;
+  }
+
+  function end() {
+    if (!drawing.current) return;
+    drawing.current = false;
+    if (dirty.current) onChange(canvasRef.current.toDataURL('image/png'));
+  }
+
+  function clear() {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    dirty.current = false;
+    onChange('');
+  }
+
+  return (
+    <div className="signature">
+      <canvas
+        ref={canvasRef}
+        className="signature__pad"
+        onPointerDown={start}
+        onPointerMove={move}
+        onPointerUp={end}
+        onPointerLeave={end}
+        onPointerCancel={end}
+      />
+      <div className="signature__foot">
+        <span className="small muted">Sign above</span>
+        <button type="button" className="btn btn--ghost small" onClick={clear}>
+          <Icon name="close" size={14} /> Clear
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Finish({ disabled }) {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" className="btn btn--lg" disabled={pending || disabled}>
+      {pending ? 'Saving…' : 'Next'}
+      {!pending && <Icon name="arrowRight" size={16} />}
+    </button>
+  );
+}
+
+/**
+ * The staff release button.
+ *
+ * Press and hold rather than tap, because the customer is holding the
+ * tablet when this screen appears and a single stray tap would put them
+ * back into a portal listing every other customer.
+ */
+function ReleaseButton() {
+  const { pending } = useFormStatus();
+  const [held, setHeld] = useState(0);
+  const timer = useRef(null);
+
+  useEffect(() => () => clearInterval(timer.current), []);
+
+  function begin() {
+    clearInterval(timer.current);
+    timer.current = setInterval(() => setHeld((h) => Math.min(100, h + 4)), 40);
+  }
+  function cancel() {
+    clearInterval(timer.current);
+    setHeld(0);
+  }
+
+  return (
+    <button
+      type="submit"
+      className="btn btn--ghost hold"
+      disabled={pending || held < 100}
+      onPointerDown={begin}
+      onPointerUp={cancel}
+      onPointerLeave={cancel}
+      style={{ '--held': `${held}%` }}
+    >
+      <span className="hold__fill" aria-hidden />
+      <span className="hold__label">
+        {pending ? 'Closing…' : held >= 100 ? 'Release — tap now' : 'Staff: press and hold'}
+      </span>
+    </button>
+  );
+}
+
+export default function HandoverFlow({ invoice, outstandingCents }) {
+  const [method, setMethod] = useState('webxpay');
+  const [signature, setSignature] = useState('');
+  const [state, action] = useFormState(completeHandover, {});
+  const [releaseState, releaseAction] = useFormState(releaseHandover, {});
+
+  // Once saved, the customer is looking at this. Nothing else is on screen.
+  if (state?.success) {
+    return (
+      <div className="handover handover--done">
+        <KeepAwake />
+        <div className="tick tick--xl" aria-hidden>
+          <Icon name="check" size={64} />
+        </div>
+        <h1>Thank you</h1>
+        <p className="muted">Your payment has been recorded.</p>
+
+        <form action={releaseAction} className="handover__release">
+          <input type="hidden" name="invoice_id" value={invoice.id} />
+          {releaseState?.error && <p className="form-error">{releaseState.error}</p>}
+          <ReleaseButton />
+        </form>
+      </div>
+    );
+  }
+
+  return (
+    <form action={action} className="handover">
+      <KeepAwake />
+      <input type="hidden" name="invoice_id" value={invoice.id} />
+      <input type="hidden" name="signature" value={signature} />
+
+      <header className="handover__head">
+        <div>
+          <p className="small muted" style={{ margin: 0 }}>{invoice.number}</p>
+          <h1 style={{ margin: 0 }}>{formatLKR(outstandingCents)}</h1>
+        </div>
+        {invoice.registration && <span className="plate">{invoice.registration}</span>}
+      </header>
+
+      {state?.error && <p className="form-error">{state.error}</p>}
+
+      <fieldset className="handover__methods">
+        <legend className="small muted">How was this paid?</legend>
+        {METHODS.map((m) => (
+          <label key={m.value} className={`choice ${method === m.value ? 'choice--on' : ''}`}>
+            <input
+              type="radio"
+              name="method"
+              value={m.value}
+              checked={method === m.value}
+              onChange={() => setMethod(m.value)}
+            />
+            <Icon name={m.icon} size={22} />
+            <strong>{m.label}</strong>
+            <span className="small muted">{m.hint}</span>
+          </label>
+        ))}
+      </fieldset>
+
+      <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}>
+        <label className="field">
+          <span>Amount taken (LKR)</span>
+          <input
+            className="input"
+            name="amount_lkr"
+            type="number"
+            min="0"
+            step="0.01"
+            defaultValue={(outstandingCents / 100).toFixed(2)}
+          />
+        </label>
+        {method === 'webxpay' && (
+          <label className="field">
+            <span>Machine reference</span>
+            <input className="input" name="provider_reference" placeholder="From the slip" autoComplete="off" />
+          </label>
+        )}
+        <label className="field">
+          <span>Customer name</span>
+          <input
+            className="input"
+            name="signed_name"
+            defaultValue={invoice.customer_name ?? ''}
+            placeholder="Who is signing"
+          />
+        </label>
+      </div>
+
+      <SignaturePad onChange={setSignature} />
+
+      <p className="small muted">
+        Signing confirms the work listed on the bill was done and the amount above
+        was paid.
+      </p>
+
+      <Finish disabled={!signature} />
+    </form>
+  );
+}

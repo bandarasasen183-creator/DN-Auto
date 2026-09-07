@@ -1,0 +1,53 @@
+{
+  "packageId": "lk.dnauto.workshop",
+  "host": "pay.dnauto.lk",
+  "name": "DN Auto Workshop",
+  "launcherName": "DN Auto",
+  "display": "standalone",
+  "orientation": "any",
+  "themeColor": "#0b0e13",
+  "themeColorDark": "#0b0e13",
+  "navigationColor": "#0b0e13",
+  "navigationColorDark": "#0b0e13",
+  "navigationDividerColor": "#0b0e13",
+  "navigationDividerColorDark": "#0b0e13",
+  "backgroundColor": "#0b0e13",
+  "enableNotifications": false,
+  "startUrl": "/worker/billing",
+  "iconUrl": "https://pay.dnauto.lk/icon-512.png",
+  "maskableIconUrl": "https://pay.dnauto.lk/icon-maskable-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "dnauto"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "New bill",
+      "shortName": "New bill",
+      "url": "/worker/billing/new",
+      "chosenIconUrl": "https://pay.dnauto.lk/icon-192.png"
+    },
+    {
+      "name": "My jobs",
+      "shortName": "Jobs",
+      "url": "/worker/jobs",
+      "chosenIconUrl": "https://pay.dnauto.lk/icon-192.png"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://pay.dnauto.lk/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://pay.dnauto.lk/",
+  "minSdkVersion": 21,
+  "appVersion": "1.0.0"
+}

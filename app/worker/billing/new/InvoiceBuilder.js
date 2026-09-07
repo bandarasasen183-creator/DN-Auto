@@ -6,7 +6,15 @@ import Icon from '@/components/Icon';
 import { createInvoice } from '../actions';
 import { formatLKR } from '@/lib/business';
 
-const BLANK = { description: '', kind: 'labour', quantity: 1, price: '' };
+/**
+ * A blank line is a custom line. Picking from the catalogue fills it in;
+ * typing straight over it is just as valid, because half of what a
+ * workshop charges for was never on a price list.
+ */
+const BLANK = { description: '', kind: 'labour', quantity: 1, price: '', warranty: '' };
+
+/** What the warranty box pre-fills to. The mechanic can change it. */
+const DEFAULT_WARRANTY = { part: 6, labour: 0 };
 
 function Submit() {
   const { pending } = useFormStatus();
@@ -17,7 +25,7 @@ function Submit() {
   );
 }
 
-export default function InvoiceBuilder({ services, bookings, preselectedBooking }) {
+export default function InvoiceBuilder({ services, bookings, preselectedBooking, mechanics = [] }) {
   const [items, setItems] = useState([{ ...BLANK }]);
   const [bookingId, setBookingId] = useState(preselectedBooking || '');
   const [state, action] = useFormState(createInvoice, {});
@@ -33,6 +41,25 @@ export default function InvoiceBuilder({ services, bookings, preselectedBooking 
 
   function update(index, key, value) {
     setItems((rows) => rows.map((row, i) => (i === index ? { ...row, [key]: value } : row)));
+  }
+
+  /**
+   * Switching between part and labour re-suggests the warranty, but only
+   * while the mechanic hasn't set one themselves — once they've typed a
+   * number, changing the type must not quietly overwrite it.
+   */
+  function updateKind(index, kind) {
+    setItems((rows) =>
+      rows.map((row, i) => {
+        if (i !== index) return row;
+        const untouched = String(row.warranty) === String(DEFAULT_WARRANTY[row.kind]);
+        return {
+          ...row,
+          kind,
+          warranty: row.warranty === '' || untouched ? DEFAULT_WARRANTY[kind] : row.warranty,
+        };
+      })
+    );
   }
 
   /** Picking a service fills the line — faster than typing it at the counter. */
@@ -84,31 +111,78 @@ export default function InvoiceBuilder({ services, bookings, preselectedBooking 
               <span>Phone</span>
               <input className="input" name="customer_phone" type="tel" />
             </label>
+            <label className="field">
+              <span>Email (optional)</span>
+              <input className="input" name="customer_email" type="email" placeholder="For the service history" />
+            </label>
           </div>
         )}
 
+        <div className="grid" style={{ gridTemplateColumns: 'minmax(160px, 1fr) minmax(200px, 2fr)' }}>
+          <label className="field">
+            <span>Registration</span>
+            <input
+              className="input"
+              name="registration"
+              defaultValue={booking?.vehicles?.registration ?? ''}
+              placeholder="CAB-1234"
+              style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}
+              autoComplete="off"
+            />
+          </label>
+          <label className="field">
+            <span>Vehicle</span>
+            <input
+              className="input"
+              name="vehicle_note"
+              defaultValue={
+                booking?.vehicles
+                  ? `${booking.vehicles.make} ${booking.vehicles.model}`
+                  : ''
+              }
+              placeholder="Toyota Aqua"
+            />
+          </label>
+        </div>
+        <p className="small muted" style={{ marginTop: '-0.5rem' }}>
+          The plate is how this job is found again — it&apos;s what warranties and
+          service history are looked up by.
+        </p>
+
+        {/*
+          Typed, not picked from a list of accounts. Plenty of people who
+          work on a car here will never have a login, and the register is
+          worth less if half the jobs say "not recorded" because of it.
+          A name matching a staff account is linked to it automatically.
+        */}
         <label className="field">
-          <span>Vehicle</span>
+          <span>Who did the work?</span>
           <input
             className="input"
-            name="vehicle_note"
-            defaultValue={
-              booking?.vehicles
-                ? `${booking.vehicles.make} ${booking.vehicles.model} · ${booking.vehicles.registration}`
-                : ''
-            }
-            placeholder="Toyota Aqua · CAB-1234"
+            name="performed_by_name"
+            list="dn-mechanics"
+            placeholder="Name of the mechanic"
+            autoComplete="off"
           />
+          <datalist id="dn-mechanics">
+            {mechanics.map((m) => (
+              <option key={m.id} value={m.full_name} />
+            ))}
+          </datalist>
         </label>
 
         <h3 style={{ marginTop: '1.5rem' }}>What are we charging for?</h3>
+        <p className="small muted" style={{ marginTop: '-0.5rem' }}>
+          Pick from the catalogue to fill a line quickly, or just type — anything
+          can be charged for, whether or not it&apos;s on the price list.
+        </p>
 
         {items.map((item, i) => (
           <div key={i} className="billline">
             <label className="field">
               <span>Quick add</span>
               <select className="select" value="" onChange={(e) => applyService(i, e.target.value)}>
-                <option value="">Choose a service…</option>
+                <option value="">Custom line — type it below</option>
                 {services.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
@@ -132,11 +206,26 @@ export default function InvoiceBuilder({ services, bookings, preselectedBooking 
                 className="select"
                 name="item_kind"
                 value={item.kind}
-                onChange={(e) => update(i, 'kind', e.target.value)}
+                onChange={(e) => updateKind(i, e.target.value)}
               >
                 <option value="labour">Labour</option>
                 <option value="part">Part</option>
               </select>
+            </label>
+
+            <label className="field">
+              <span>Warranty (months)</span>
+              <input
+                className="input"
+                name="item_warranty_months"
+                type="number"
+                min="0"
+                step="1"
+                value={item.warranty}
+                onChange={(e) => update(i, 'warranty', e.target.value)}
+                placeholder={String(DEFAULT_WARRANTY[item.kind])}
+                title="0 means no cover on this line. Parts default to 6 months."
+              />
             </label>
 
             <label className="field">

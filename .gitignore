@@ -5,3 +5,14 @@ out/
 .env.local
 .DS_Store
 npm-debug.log*
+
+# Android app (see APK.md). The keystore signs the app that goes on the
+# workshop tablets — anyone holding it can publish an app that Android
+# treats as ours, so it never belongs in the repository. Back it up
+# somewhere private instead; without it, installed apps can't be updated.
+android.keystore
+*.keystore
+*.jks
+app-release-signed.apk
+app-release-bundle.aab
+/android/

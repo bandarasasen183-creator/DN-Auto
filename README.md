@@ -126,31 +126,70 @@ written to `promotion_redemptions`, so what an offer has cost is a query
 rather than a guess. Eligibility is decided server-side in `lib/promotions.js`
 and re-checked inside the booking action — the wizard only previews it.
 
-## Billing and the card terminal
+## Billing, handover and the card terminal
 
 The team raises bills at **Worker → Billing**: against a job or for a walk-in
-with no account, with a promo code applied at the counter. Paying goes through
-`terminal_requests` — the app writes what the machine needs and an adapter
-delivers it (`lib/payments/terminal.js`):
+with no account, with a promo code applied at the counter. Lines can come from
+the service catalogue or be typed from scratch — plenty of what a workshop
+charges for was never on a price list — and each line carries its own warranty
+in months, pre-filled with the usual answer but set per line.
 
-* **push** — the terminal has an API, so the amount appears on the machine and
-  the customer taps. Nobody keys anything in.
-* **manual** — the terminal is standalone, as many Sri Lankan POS terminals
-  are. The tablet shows the amount and reference in large type for the
-  mechanic to key in, then they confirm. One extra step; identical record.
+**WEBXPAY have confirmed their terminal has no API.** The card machine and this
+app are therefore two separate systems that meet at a person, and the app is
+built around that rather than pretending otherwise. Raising a bill leads
+straight to a **handover screen**, which is handed to the customer:
 
-WEBXPAY is **manual** until their terminal integration documents arrive.
-Filling in `push` is the only change needed — no schema change, nothing moves
-in the portals.
+1. How they paid — card, cash or transfer.
+2. Their signature, drawn on the tablet.
+3. A confirmation screen showing a tick and nothing else.
+
+That last screen matters. The customer is holding a device that can reach every
+other customer's details, so it carries no navigation and no totals, and the
+way out is a deliberate press-and-hold rather than a tap — a member of staff
+takes the tablet back, and that release is recorded against the bill.
+
+The signature is stored on the invoice and printed on the receipt. Without it,
+a payment on a machine we can't talk to is one member of staff's word; with it,
+the bill carries the customer's own confirmation.
 
 Refunds are their own rows against the payment they reverse, never an edit, so
 the ledger stays append-only and every figure traces back to who did what.
 
+## The warranty register
+
+The registration is the key, not a customer account. Somebody arrives a year
+later saying "you fitted a battery to this car" — the plate is typed and the
+answer is there.
+
+Every bill records a plate, and every line sold with cover becomes a row in
+`warranties` with its own printable number and an expiry date the database
+generates from the months sold, so nobody can quietly type a different one.
+Who did the work is recorded **by name**, not by account — most of the people
+turning a spanner here will never have a login, and a register where half the
+jobs read "not recorded" is not worth keeping. A name matching a staff account
+is linked to it automatically.
+
+## Email
+
+Service history goes out through [Resend](https://resend.com)
+(`lib/email/index.js`). A customer asking for "the paperwork" gets everything
+recorded against their vehicle — every visit, and every warranty still in date
+— not just the bill in front of them. Every send is written to `messages`, so
+"you never sent it" is answerable from the record.
+
+Without `RESEND_API_KEY` the app says so plainly rather than failing quietly,
+on the same principle as the payment adapters: a receipt that silently never
+arrives is worse than one that visibly refused to send.
+
 Tablets live on `pay.dnauto.lk`, which opens billing and nothing else, so a
-machine left on the counter cannot wander into the rest of the portal. They
-install to the Android home screen as a web app — see [TABLETS.md](TABLETS.md)
-for setting up the Kogan Explore Tab 10.1" units, including screen pinning and
-how takings are split per mechanic and per bay.
+machine left on the counter cannot wander into the rest of the portal.
+
+* [TABLETS.md](TABLETS.md) — setting up the Kogan Explore Tab 10.1" units:
+  stripping the stock Google apps off over ADB, screen pinning, and how
+  takings are split per mechanic and per bay.
+* [APK.md](APK.md) — building the site into a real installable Android app
+  with `bubblewrap`, so it lands in the app drawer with its own icon and no
+  browser chrome. No Play Store and no Google account needed.
 
 ## Payments
 

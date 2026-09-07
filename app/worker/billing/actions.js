@@ -6,26 +6,58 @@ import { createClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/auth/session';
 import { getTerminal } from '@/lib/payments/terminal';
 import { discountFor } from '@/lib/promotions';
+import { BUSINESS } from '@/lib/business';
+import { sendEmail, EmailNotConfiguredError } from '@/lib/email';
+import {
+  fetchServiceHistory,
+  renderServiceHistoryEmail,
+  formatPlate,
+} from '@/lib/service-history';
 
 const TEAM = ['worker', 'admin'];
 
-/** Reads the line items out of the form and totals them. */
+/**
+ * What a line carries by default: parts get the workshop's standing
+ * warranty, labour gets none. The counter can override either way.
+ */
+function defaultWarrantyFor(kind) {
+  return kind === 'part' ? BUSINESS.partsWarrantyMonths : 0;
+}
+
+/**
+ * Reads the line items out of the form and totals them.
+ *
+ * The warranty on a line is whatever the mechanic set, not whatever the
+ * kind implies — a supplier's twelve months, a used part with none, or a
+ * gearbox rebuild carrying cover on the labour are all real, and the form
+ * only pre-fills the usual answer rather than deciding it.
+ */
 function readItems(formData) {
   const descriptions = formData.getAll('item_description').map(String);
   const prices = formData.getAll('item_price').map(Number);
   const quantities = formData.getAll('item_quantity').map(Number);
   const kinds = formData.getAll('item_kind').map(String);
+  const warranties = formData.getAll('item_warranty_months');
 
   return descriptions
-    .map((description, i) => ({
-      description: description.trim(),
-      kind: kinds[i] ?? 'labour',
-      quantity: Number.isFinite(quantities[i]) && quantities[i] > 0 ? quantities[i] : 1,
-      unit_price_cents: Math.round((prices[i] || 0) * 100),
-      // Parts carry the workshop's standing warranty; labour doesn't.
-      warranty_months: (kinds[i] ?? 'labour') === 'part' ? 6 : 0,
-      sort_order: i,
-    }))
+    .map((description, i) => {
+      const kind = kinds[i] ?? 'labour';
+      // An empty box means "the usual"; a typed 0 means "explicitly none".
+      const typed = warranties[i];
+      const months =
+        typed === undefined || String(typed).trim() === ''
+          ? defaultWarrantyFor(kind)
+          : Math.max(0, Math.round(Number(typed) || 0));
+
+      return {
+        description: description.trim(),
+        kind,
+        quantity: Number.isFinite(quantities[i]) && quantities[i] > 0 ? quantities[i] : 1,
+        unit_price_cents: Math.round((prices[i] || 0) * 100),
+        warranty_months: months,
+        sort_order: i,
+      };
+    })
     .filter((item) => item.description && item.unit_price_cents > 0);
 }
 
@@ -66,11 +98,13 @@ export async function createInvoice(_prevState, formData) {
   let customerId = null;
   let customerName = String(formData.get('customer_name') ?? '').trim() || null;
   let customerPhone = String(formData.get('customer_phone') ?? '').trim() || null;
+  let customerEmail = String(formData.get('customer_email') ?? '').trim() || null;
+  let registration = formatPlate(formData.get('registration')) || null;
 
   if (bookingId) {
     const { data: booking } = await supabase
       .from('bookings')
-      .select('customer_id, vehicles(make, model, registration), profiles!bookings_customer_id_fkey(full_name, phone)')
+      .select('customer_id, vehicles(make, model, registration), profiles!bookings_customer_id_fkey(full_name, phone, email)')
       .eq('id', bookingId)
       .maybeSingle();
 
@@ -78,7 +112,27 @@ export async function createInvoice(_prevState, formData) {
       customerId = booking.customer_id;
       customerName ??= booking.profiles?.full_name ?? null;
       customerPhone ??= booking.profiles?.phone ?? null;
+      customerEmail ??= booking.profiles?.email ?? null;
+      // The plate on the job wins only if nobody typed one at the counter —
+      // a car can arrive on different plates to the one we have on file.
+      registration ??= formatPlate(booking.vehicles?.registration) || null;
     }
+  }
+
+  // Who did the work is typed, not picked — most of the people who turn a
+  // spanner here have no login. If the name happens to match a staff
+  // account we link it, which makes "show me this mechanic's jobs" work
+  // without forcing everyone through a sign-up they don't need.
+  const performedByName = String(formData.get('performed_by_name') ?? '').trim() || null;
+  let performedBy = null;
+  if (performedByName) {
+    const { data: match } = await supabase
+      .from('profiles')
+      .select('id')
+      .ilike('full_name', performedByName)
+      .in('role', ['worker', 'admin'])
+      .maybeSingle();
+    performedBy = match?.id ?? null;
   }
 
   const { data: invoice, error } = await supabase
@@ -88,6 +142,10 @@ export async function createInvoice(_prevState, formData) {
       customer_id: customerId,
       customer_name: customerName,
       customer_phone: customerPhone,
+      customer_email: customerEmail,
+      registration,
+      performed_by: performedBy,
+      performed_by_name: performedByName,
       vehicle_note: String(formData.get('vehicle_note') ?? '').trim() || null,
       status: 'issued',
       promotion_id: promo?.id ?? null,
@@ -98,16 +156,51 @@ export async function createInvoice(_prevState, formData) {
       issued_by: profile.id,
       issued_at: new Date().toISOString(),
     })
-    .select('id, number')
+    .select('id, number, notes')
     .single();
 
   if (error) return { error: error.message };
 
-  const { error: itemsError } = await supabase
+  const { data: savedItems, error: itemsError } = await supabase
     .from('invoice_items')
-    .insert(items.map((i) => ({ ...i, invoice_id: invoice.id })));
+    .insert(items.map((i) => ({ ...i, invoice_id: invoice.id })))
+    .select('id, description, warranty_months, sort_order');
 
   if (itemsError) return { error: itemsError.message };
+
+  // Every line sold with cover becomes a warranty in its own right, so the
+  // register can answer "what is still covered on this car?" without
+  // re-reading old bills. Needs a plate — cover follows the vehicle, and
+  // without one there is nothing to look it up by later.
+  if (registration) {
+    const covered = (savedItems ?? [])
+      .filter((item) => item.warranty_months > 0)
+      .map((item) => ({
+        invoice_id: invoice.id,
+        invoice_item_id: item.id,
+        registration,
+        description: item.description,
+        months: item.warranty_months,
+        fitted_by: performedBy,
+        fitted_by_name: performedByName ?? profile.full_name ?? null,
+      }));
+
+    if (covered.length > 0) {
+      const { error: warrantyError } = await supabase.from('warranties').insert(covered);
+      // A failure here must not lose the bill — the money is the urgent part.
+      // It is surfaced on the receipt instead, where somebody can fix it.
+      if (warrantyError) {
+        await supabase
+          .from('invoices')
+          .update({
+            notes: [invoice.notes, `Warranty records failed to save: ${warrantyError.message}`]
+              .filter(Boolean)
+              .join(' · '),
+          })
+          .eq('id', invoice.id);
+      }
+    }
+  }
 
   if (promo) {
     await supabase.from('promotion_redemptions').insert({
@@ -119,7 +212,9 @@ export async function createInvoice(_prevState, formData) {
   }
 
   revalidatePath('/worker/billing');
-  redirect(`/worker/billing/${invoice.id}`);
+  // Straight to the handover screen — the bill exists, now it gets paid for
+  // and signed. The receipt is what comes after that, not before.
+  redirect(`/worker/billing/${invoice.id}/confirm`);
 }
 
 /**
@@ -321,6 +416,172 @@ export async function refundPayment(_prevState, formData) {
       payment.provider === 'cash'
         ? 'Recorded. Hand the cash back from the till.'
         : 'Recorded here — process the refund on the card machine as well.',
+  };
+}
+
+/**
+ * Handover: records how the customer paid and captures their signature.
+ *
+ * WEBXPAY have confirmed the card machine has no API, so the terminal and
+ * this app are two separate systems that meet at a person. That person
+ * says what the machine did, and the customer signs to say they agree.
+ * Without the signature this is one member of staff's word; with it, the
+ * bill carries the customer's own confirmation of what they paid.
+ */
+export async function completeHandover(_prevState, formData) {
+  const { profile } = await requireRole(TEAM);
+  const supabase = createClient();
+
+  const invoiceId = String(formData.get('invoice_id') ?? '');
+  const method = String(formData.get('method') ?? 'cash');
+  const rupees = Number(formData.get('amount_lkr') ?? 0);
+  const signature = String(formData.get('signature') ?? '');
+  const signedName = String(formData.get('signed_name') ?? '').trim() || null;
+  const reference = String(formData.get('provider_reference') ?? '').trim() || null;
+
+  if (!Number.isFinite(rupees) || rupees <= 0) return { error: 'Enter what was paid.' };
+  if (!signature.startsWith('data:image/png')) {
+    return { error: 'Ask the customer to sign before finishing.' };
+  }
+
+  const { data: invoice } = await supabase
+    .from('invoices')
+    .select('id, total_cents, paid_cents')
+    .eq('id', invoiceId)
+    .maybeSingle();
+
+  if (!invoice) return { error: 'That bill no longer exists.' };
+
+  const { error: payError } = await supabase.from('payments').insert({
+    invoice_id: invoice.id,
+    provider: method,
+    status: 'paid',
+    amount_cents: Math.round(rupees * 100),
+    provider_reference: reference,
+    paid_at: new Date().toISOString(),
+  });
+
+  if (payError) return { error: payError.message };
+
+  const { error } = await supabase
+    .from('invoices')
+    .update({
+      signature_png: signature,
+      signed_name: signedName,
+      signed_at: new Date().toISOString(),
+    })
+    .eq('id', invoice.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/worker/billing/${invoice.id}`);
+  return { success: true, signedBy: profile.full_name ?? null };
+}
+
+/**
+ * A member of staff takes the tablet back.
+ *
+ * The screen the customer is left looking at shows a tick and nothing
+ * else — no totals, no other jobs, no way back into the portal — because
+ * they are holding a device that can see every customer we have. This is
+ * the step that ends that, and it is recorded so "who closed this off?"
+ * has an answer.
+ */
+export async function releaseHandover(_prevState, formData) {
+  const { profile } = await requireRole(TEAM);
+  const supabase = createClient();
+
+  const invoiceId = String(formData.get('invoice_id') ?? '');
+
+  await supabase
+    .from('invoices')
+    .update({ handed_back_at: new Date().toISOString(), handed_back_by: profile.id })
+    .eq('id', invoiceId);
+
+  revalidatePath(`/worker/billing/${invoiceId}`);
+  redirect(`/worker/billing/${invoiceId}?settled=paid`);
+}
+
+/**
+ * Emails a vehicle's service history to the customer.
+ *
+ * Sent against the registration rather than the bill, so a customer gets
+ * everything we have ever done to that car, not just today's line items.
+ * Every send is written to `messages` — a customer who says "you never
+ * sent it" is answerable from the record rather than from memory.
+ */
+export async function emailServiceHistory(_prevState, formData) {
+  await requireRole(TEAM);
+  const supabase = createClient();
+
+  const invoiceId = String(formData.get('invoice_id') ?? '') || null;
+  const to = String(formData.get('email') ?? '').trim();
+  const registration = formatPlate(formData.get('registration'));
+
+  if (!to || !to.includes('@')) return { error: 'Enter an email address to send it to.' };
+  if (!registration) {
+    return {
+      error:
+        'This bill has no registration on it, so there is nothing to look the ' +
+        'history up by. Add the plate to the bill first.',
+    };
+  }
+
+  const history = await fetchServiceHistory(supabase, registration);
+  const customerName = String(formData.get('customer_name') ?? '').trim() || null;
+  const { subject, html } = renderServiceHistoryEmail({
+    registration,
+    history,
+    customerName,
+  });
+
+  let providerReference = null;
+  let status = 'sent';
+  let failure = null;
+  let notConfigured = false;
+
+  try {
+    const result = await sendEmail({ to, subject, html, replyTo: BUSINESS.contact.email });
+    providerReference = result.id;
+  } catch (err) {
+    status = 'failed';
+    failure = err.message;
+    notConfigured = err instanceof EmailNotConfiguredError;
+  }
+
+  await supabase.from('messages').insert({
+    invoice_id: invoiceId,
+    channel: 'email',
+    kind: 'service_history',
+    to_email: to,
+    subject,
+    body: `Service history for ${registration} (${history.invoices.length} visits, ${history.warranties.length} warranties)`,
+    status,
+    provider: 'resend',
+    provider_reference: providerReference,
+    failure_reason: failure,
+    sent_at: status === 'sent' ? new Date().toISOString() : null,
+  });
+
+  if (status === 'failed') {
+    return { error: notConfigured ? failure : `Not sent — ${failure}` };
+  }
+
+  // Remember where it went, so the next send doesn't need retyping.
+  if (invoiceId) {
+    await supabase
+      .from('invoices')
+      .update({ customer_email: to })
+      .eq('id', invoiceId)
+      .is('customer_email', null);
+    revalidatePath(`/worker/billing/${invoiceId}`);
+  }
+
+  return {
+    success: true,
+    notice: `Sent to ${to} — ${history.invoices.length} visit${
+      history.invoices.length === 1 ? '' : 's'
+    } on record.`,
   };
 }
 

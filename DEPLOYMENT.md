@@ -52,7 +52,10 @@ engines fold the alias into the canonical domain rather than ranking both.
 | `NEXT_PUBLIC_ALIAS_DOMAINS` | Comma-separated domains that redirect to the canonical one | No |
 | `NEXT_PUBLIC_SITE_URL` | Absolute base for canonical links and the sitemap | No |
 | `WEBXPAY_MERCHANT_ID` / `WEBXPAY_SECRET` | WEBXPAY online adapter | When going live |
-| `WEBXPAY_TERMINAL_URL` / `WEBXPAY_TERMINAL_KEY` | Card terminal. Set these and amounts are pushed to the machine; leave blank and the tablet shows the amount to key in | When their terminal docs arrive |
+| `WEBXPAY_TERMINAL_URL` / `WEBXPAY_TERMINAL_KEY` | Card terminal. WEBXPAY have confirmed there is no API, so these stay empty and handover captures the method and a signature instead | No |
+| `RESEND_API_KEY` | Emailing service history to customers. Without it the app says email isn't set up rather than failing quietly | To email anything |
+| `RESEND_FROM` | The address customers see, e.g. `DN Auto Repairs <service@dnauto.lk>`. Must be on a domain verified in Resend | With the above |
+| `ANDROID_CERT_FINGERPRINT` / `ANDROID_PACKAGE_ID` | Vouches for the installed Android app at `/.well-known/assetlinks.json`. See [APK.md](APK.md) | Only if building the APK |
 | `KOKO_MERCHANT_ID` / `KOKO_SECRET` | Koko adapter | When going live |
 | `PAYABLE_TERMINAL_ID` / `PAYABLE_API_KEY` | Pushing amounts to the POS terminal | Optional |
 

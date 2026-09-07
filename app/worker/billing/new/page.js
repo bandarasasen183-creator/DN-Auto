@@ -10,7 +10,7 @@ export default async function NewInvoicePage({ searchParams }) {
   const { profile } = await requireRole(['worker', 'admin'], { from: '/worker/billing/new' });
   const supabase = createClient();
 
-  const [{ data: services }, { data: bookings }] = await Promise.all([
+  const [{ data: services }, { data: bookings }, { data: mechanics }] = await Promise.all([
     supabase
       .from('services')
       .select('id, name, base_price_cents')
@@ -22,6 +22,14 @@ export default async function NewInvoicePage({ searchParams }) {
       .in('status', ['in_progress', 'awaiting_approval', 'awaiting_parts', 'completed'])
       .order('scheduled_for', { ascending: false })
       .limit(40),
+    // Suggestions only — the name field takes anything, because plenty of
+    // the people who do the work here have no account.
+    supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('role', ['worker', 'admin'])
+      .eq('is_active', true)
+      .order('full_name'),
   ]);
 
   return (
@@ -36,6 +44,7 @@ export default async function NewInvoicePage({ searchParams }) {
         services={services ?? []}
         bookings={bookings ?? []}
         preselectedBooking={searchParams?.booking ?? ''}
+        mechanics={mechanics ?? []}
       />
     </PortalShell>
   );
