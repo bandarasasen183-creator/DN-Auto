@@ -79,32 +79,79 @@ who sees what.
 
 ### dnauto.lk — the real site
 
-DNS for the .lk is managed through **BuyDomains.LK**, in your account's domain
-control panel. If they don't expose DNS records directly, ask their support to
-point the domain at Vercel — .lk resellers usually do this for you.
+The domain is registered with **BuyDomains.LK**, but its nameservers are
+delegated to **Cloudflare**, so every record below is added in the Cloudflare
+dashboard rather than at the registrar. The registrar only holds the
+nameserver delegation now; changing a record there does nothing.
 
-| Host | Type | Value |
-|---|---|---|
-| `@` | A | `76.76.21.21` |
-| `www` | CNAME | `cname.vercel-dns.com` |
-| `customer` | CNAME | `cname.vercel-dns.com` |
-| `workers` | CNAME | `cname.vercel-dns.com` |
-| `team` | CNAME | `cname.vercel-dns.com` |
-| `pay` | CNAME | `cname.vercel-dns.com` |
-| `admin` | CNAME | `cname.vercel-dns.com` |
+> **Turn the proxy off — the orange cloud — on every record pointing at
+> Vercel.** Proxied records must be DNS-only (grey cloud). Cloudflare
+> proxying in front of Vercel means two CDNs terminating TLS for the same
+> host, which produces either a redirect loop or a 526, and neither error
+> says what is actually wrong.
+>
+> While you are there: **SSL/TLS → Overview → Full (strict)**. On
+> *Flexible*, Cloudflare talks HTTP to Vercel, Vercel redirects to HTTPS,
+> and the site loops until the browser gives up.
+
+| Host | Type | Value | Proxy |
+|---|---|---|---|
+| `@` | A | `76.76.21.21` | DNS only |
+| `www` | CNAME | `cname.vercel-dns.com` | DNS only |
+| `customer` | CNAME | `cname.vercel-dns.com` | DNS only |
+| `workers` | CNAME | `cname.vercel-dns.com` | DNS only |
+| `team` | CNAME | `cname.vercel-dns.com` | DNS only |
+| `pay` | CNAME | `cname.vercel-dns.com` | DNS only |
+| `admin` | CNAME | `cname.vercel-dns.com` | DNS only |
 
 `pay` is the host for the workshop tablets — it opens billing directly, and is
 the address the tablets install from. See [TABLETS.md](TABLETS.md).
 
+### Email
+
+Two separate jobs, and it is worth being clear which is which, because one
+of them looks like it covers both and doesn't.
+
+**Sending — Resend.** Everything the app emails a customer. Resend has a
+Cloudflare integration: add `dnauto.lk` in Resend, click through to
+Cloudflare, and it writes its own DKIM, SPF and DMARC records. Then put the
+API key in `RESEND_API_KEY` on Vercel.
+
+Send from a subdomain — `RESEND_FROM="DN Auto Repairs <service@send.dnauto.lk>"`
+— rather than the root. If a batch of mail ever gets marked as spam, that
+damages the reputation of whatever domain sent it, and it should not be the
+one your actual business mail arrives on.
+
+**Receiving — Cloudflare Email Routing.** Resend does not give you a mailbox;
+nothing arrives at `admin@dnauto.lk` because of it. Cloudflare Email Routing
+is free, adds its own MX records, and forwards addresses on the domain to an
+inbox you already have:
+
+**Cloudflare → Email → Email Routing → Get started.**
+
+| Address | Forwards to |
+|---|---|
+| `admin@dnauto.lk` | your existing inbox |
+| `info@dnauto.lk` | whoever answers enquiries |
+
+Cloudflare adds the MX and SPF records itself. Do not hand-write MX records
+alongside it — two sets of MX for one domain means mail arrives at whichever
+answers first, which is not a coin toss you want to run on customer email.
+
+Forwarding is receive-only. If you later need to *send* as
+`admin@dnauto.lk` from a mail client, that is when Google Workspace or Zoho
+becomes worth paying for — not before.
+
 ### dnauto.org — the alias
 
-**Spaceship → Domain List → dnauto.org → Manage → Advanced DNS.** Leave the
-nameservers on Spaceship's default.
+Registered at **Spaceship**. Either leave its DNS there (Domain List →
+dnauto.org → Manage → Advanced DNS) or move its nameservers to Cloudflare
+alongside the .lk — one dashboard for both is less to remember.
 
-| Host | Type | Value |
-|---|---|---|
-| `@` | A | `76.76.21.21` |
-| `www` | CNAME | `cname.vercel-dns.com` |
+| Host | Type | Value | Proxy |
+|---|---|---|---|
+| `@` | A | `76.76.21.21` | DNS only |
+| `www` | CNAME | `cname.vercel-dns.com` | DNS only |
 
 Add it to the same Vercel project. Do **not** set up Vercel's own redirect —
 `middleware.js` already handles it and keeps the path and subdomain intact.
