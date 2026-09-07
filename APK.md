@@ -109,25 +109,62 @@ or copy the APK to a USB stick and install it from the tablet's Files app.
 you wrote onto tablets you own is entirely ordinary; Android will warn about
 installing from an unknown source the first time, which is expected.
 
-## 6. Shipping an update
+## 6. Publish the APK so tablets can update themselves
+
+Copy the built file into the site and deploy it:
+
+```bash
+cp app-release-signed.apk public/app/dn-auto.apk
+git add -A && git commit -m "Publish app 1.0.0" && git push
+```
+
+The APK itself is **not** committed — `.gitignore` excludes it, because a
+signed binary does not belong in a git history. Vercel picks it up from
+the working copy at build time.
+
+Once deployed, a tablet running an older shell shows an **App update
+available** banner. Tapping *Update now* downloads the APK in the
+background with a progress bar, then hands it to Android to install.
+
+> Android always shows its own install confirmation, and always will. No
+> sideloaded app can update itself silently — that is a deliberate part of
+> Android, not a gap in this. A mechanic taps *Update* once and it is done.
+
+## 7. Shipping an update
 
 Only needed when something about the *shell* changes — the icon, the name,
 the start URL, the Android version target. Ordinary changes to the site
-reach the tablets on their own, because the app loads the live site.
+reach the tablets on their own, because the app loads the live site. Most
+months you will never touch this.
 
-When you do need one, bump both numbers in `twa-manifest.json`:
+When you do, **three numbers must move together**:
 
-```json
-"appVersionName": "1.1.0",
-"appVersionCode": 2
+| File | Field | Note |
+|---|---|---|
+| `twa-manifest.json` | `appVersionName` | `"1.1.0"` |
+| `twa-manifest.json` | `appVersionCode` | must *increase*, or Android refuses the install |
+| `twa-manifest.json` | `startUrl` | `/worker/billing?app=1.1.0` — this is how a tablet knows which build it is running |
+| `lib/app-release.js` | `versionName` / `versionCode` | what the tablets are told is newest |
+
+Get `startUrl` wrong and the banner either never appears or never goes
+away, because the app reports a version that doesn't match what it is.
+Also put something useful in `notes` — it is shown on the banner, so write
+it for a mechanic ("Bigger buttons on the payment screen"), not as a
+changelog line.
+
+Then:
+
+```bash
+bubblewrap build
+cp app-release-signed.apk public/app/dn-auto.apk
 ```
 
-`appVersionCode` must increase or Android refuses the update. Then
-`bubblewrap build` and `adb install -r` again.
+Commit, push, and the tablets offer it themselves. You only need a cable
+for the very first install on each tablet.
 
 ---
 
-## Should you put it on the Play Store?
+## 8. Should you put it on the Play Store?
 
 Probably not, and not yet.
 

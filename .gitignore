@@ -16,3 +16,4 @@ android.keystore
 app-release-signed.apk
 app-release-bundle.aab
 /android/
+public/app/*.apk

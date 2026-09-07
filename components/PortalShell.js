@@ -5,6 +5,7 @@ import { BUSINESS } from '@/lib/business';
 import DnAssist from '@/components/assistant/DnAssist';
 import NotificationBell from '@/components/NotificationBell';
 import MobileNav from '@/components/MobileNav';
+import AppUpdate from '@/components/AppUpdate';
 
 /**
  * The frame every signed-in page sits in. Navigation is passed in per portal
@@ -64,6 +65,10 @@ export default function PortalShell({ profile, nav, current, title, subtitle, ac
       </nav>
 
       <main className="shell__main">
+        {/* Only ever renders inside the installed Android app, and only when
+            its shell is behind. In a browser it is nothing. */}
+        <AppUpdate />
+
         <header className="shell__head rise">
           <div>
             <h2 style={{ marginBottom: subtitle ? '0.2rem' : 0 }}>{title}</h2>

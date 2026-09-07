@@ -13,7 +13,7 @@
   "navigationDividerColorDark": "#0b0e13",
   "backgroundColor": "#0b0e13",
   "enableNotifications": false,
-  "startUrl": "/worker/billing",
+  "startUrl": "/worker/billing?app=1.0.0",
   "iconUrl": "https://pay.dnauto.lk/icon-512.png",
   "maskableIconUrl": "https://pay.dnauto.lk/icon-maskable-512.png",
   "splashScreenFadeOutDuration": 300,
