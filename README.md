@@ -126,6 +126,41 @@ written to `promotion_redemptions`, so what an offer has cost is a query
 rather than a guess. Eligibility is decided server-side in `lib/promotions.js`
 and re-checked inside the booking action — the wizard only previews it.
 
+## Tickets — what's in the workshop right now
+
+A booking is a promise about the future and a bill is a record of the past.
+Neither answers the question the workshop is actually asked all day: *is that
+car ready yet?*
+
+**Worker → In the workshop** is a board of three columns — waiting, in
+progress, ready — oldest first, because the car that has been there longest is
+the one somebody should be looking at. A ticket is opened when a car arrives,
+booked or not, and closed when the keys go back.
+
+What a ticket carries beyond the obvious:
+
+* **The complaint in the customer's words**, kept separate from what we find.
+  "Grinding noise going round left corners" is the useful thing to have written
+  down when the car comes back a second time.
+* **Where the keys are.** Sounds trivial until there are six cars in.
+* **A promised time, only if somebody made one.** Elapsed time is a fact and is
+  always shown; a promise is a commitment and is optional. Tickets past their
+  promised time are marked on the board from across the room, because a missed
+  promise the customer remembers is worse than never having given one.
+* **Who's on it, by name** — no account needed, same as everywhere else.
+
+Because the plate is the key, opening a ticket shows the car's whole history
+without anybody going to look for it: previous visits, and — flagged at the top
+— **any part still under warranty**. If the complaint is about one of those, the
+work is covered, and the mechanic finds out before quoting rather than after.
+
+Tickets feed billing directly. The billing screen's customer selector lists cars
+currently in the workshop, so a customer who dropped their car off in the
+morning is picked from a list rather than typed in again — which is how a bill
+ends up under a slightly different name to the ticket, after which neither can
+be found. Raising the bill closes the ticket's loop, and bookings are shown for
+**today only**, since a list going back weeks is noise at a counter.
+
 ## Billing, handover and the card terminal
 
 The team raises bills at **Worker → Billing**: against a job or for a walk-in

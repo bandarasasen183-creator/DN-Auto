@@ -101,6 +101,28 @@ export async function createInvoice(_prevState, formData) {
   let customerEmail = String(formData.get('customer_email') ?? '').trim() || null;
   let registration = formatPlate(formData.get('registration')) || null;
 
+  // A ticket already has everything typed from when the car arrived.
+  // Taking it from there rather than from the counter is what keeps the
+  // bill, the ticket and the vehicle record talking about the same visit.
+  const ticketId = String(formData.get('ticket_id') ?? '') || null;
+  let contactId = null;
+
+  if (ticketId) {
+    const { data: ticket } = await supabase
+      .from('tickets')
+      .select('customer_id, contact_id, customer_name, customer_phone, registration, assigned_name')
+      .eq('id', ticketId)
+      .maybeSingle();
+
+    if (ticket) {
+      customerId = ticket.customer_id;
+      contactId = ticket.contact_id;
+      customerName ??= ticket.customer_name ?? null;
+      customerPhone ??= ticket.customer_phone ?? null;
+      registration ??= formatPlate(ticket.registration) || null;
+    }
+  }
+
   if (bookingId) {
     const { data: booking } = await supabase
       .from('bookings')
@@ -143,6 +165,7 @@ export async function createInvoice(_prevState, formData) {
       customer_name: customerName,
       customer_phone: customerPhone,
       customer_email: customerEmail,
+      contact_id: contactId,
       registration,
       performed_by: performedBy,
       performed_by_name: performedByName,
@@ -209,6 +232,17 @@ export async function createInvoice(_prevState, formData) {
       customer_id: customerId ?? profile.id,
       discount_cents: discount,
     });
+  }
+
+  // Close the loop: the ticket now knows which bill it became, so the board
+  // stops offering it and the ticket links straight to the receipt.
+  if (ticketId) {
+    await supabase
+      .from('tickets')
+      .update({ invoice_id: invoice.id })
+      .eq('id', ticketId);
+    revalidatePath('/worker/tickets');
+    revalidatePath(`/worker/tickets/${ticketId}`);
   }
 
   revalidatePath('/worker/billing');

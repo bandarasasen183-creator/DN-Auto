@@ -1,0 +1,125 @@
+'use client';
+
+import { useFormState, useFormStatus } from 'react-dom';
+import Icon from '@/components/Icon';
+import { moveTicket, updateTicket } from '../actions';
+import { NEXT_STATUS, TICKET_STATUS } from '@/lib/tickets';
+
+const VERB = {
+  in_progress: { label: 'Start work', icon: 'wrench' },
+  ready: { label: 'Mark ready', icon: 'check' },
+  collected: { label: 'Keys handed back', icon: 'check' },
+  waiting: { label: 'Back to waiting', icon: 'clock' },
+  cancelled: { label: 'Car left', icon: 'close' },
+};
+
+function Move({ status, primary }) {
+  const { pending } = useFormStatus();
+  const verb = VERB[status] ?? { label: TICKET_STATUS[status]?.label ?? status, icon: 'arrowRight' };
+
+  return (
+    <button
+      type="submit"
+      name="status"
+      value={status}
+      className={primary ? 'btn btn--lg' : 'btn btn--ghost small'}
+      disabled={pending}
+    >
+      <Icon name={verb.icon} size={primary ? 16 : 14} /> {verb.label}
+    </button>
+  );
+}
+
+export function StatusActions({ ticket }) {
+  const [state, action] = useFormState(moveTicket, {});
+  const moves = NEXT_STATUS[ticket.status] ?? [];
+
+  if (moves.length === 0) {
+    return <p className="small muted">This ticket is closed.</p>;
+  }
+
+  return (
+    <form action={action} className="stack" style={{ '--gap': '0.6rem' }}>
+      <input type="hidden" name="ticket_id" value={ticket.id} />
+      {state?.error && <p className="form-error">{state.error}</p>}
+      {moves.map((status, i) => (
+        <Move key={status} status={status} primary={i === 0} />
+      ))}
+    </form>
+  );
+}
+
+function Save() {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" className="btn btn--ghost small" disabled={pending}>
+      {pending ? 'Saving…' : 'Save'}
+    </button>
+  );
+}
+
+export function TicketDetails({ ticket, bays, mechanics }) {
+  const [state, action] = useFormState(updateTicket, {});
+
+  // datetime-local wants the local wall clock, not an ISO string in UTC.
+  const promised = ticket.promised_ready_at
+    ? (() => {
+        const d = new Date(ticket.promised_ready_at);
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      })()
+    : '';
+
+  return (
+    <form action={action} className="card">
+      <input type="hidden" name="ticket_id" value={ticket.id} />
+      <h3 style={{ marginTop: 0 }}>Where and who</h3>
+
+      {state?.error && <p className="form-error">{state.error}</p>}
+      {state?.success && <p className="form-note">Saved.</p>}
+
+      <label className="field">
+        <span>Bay</span>
+        <select className="select" name="bay_id" defaultValue={ticket.bay_id ?? ''}>
+          <option value="">Not assigned</option>
+          {bays.map((b) => (
+            <option key={b.id} value={b.id}>{b.name}</option>
+          ))}
+        </select>
+      </label>
+
+      <label className="field">
+        <span>Mechanic</span>
+        <input
+          className="input"
+          name="assigned_name"
+          list="dn-detail-mechanics"
+          defaultValue={ticket.assigned_name ?? ''}
+          autoComplete="off"
+        />
+        <datalist id="dn-detail-mechanics">
+          {mechanics.map((m) => (
+            <option key={m.id} value={m.full_name} />
+          ))}
+        </datalist>
+      </label>
+
+      <label className="field">
+        <span>Keys</span>
+        <input className="input" name="keys_location" defaultValue={ticket.keys_location ?? ''} placeholder="Hook 3" />
+      </label>
+
+      <label className="field">
+        <span>Ready by</span>
+        <input className="input" name="promised_ready_at" type="datetime-local" defaultValue={promised} />
+      </label>
+
+      <label className="field">
+        <span>Notes</span>
+        <input className="input" name="notes" defaultValue={ticket.notes ?? ''} />
+      </label>
+
+      <Save />
+    </form>
+  );
+}

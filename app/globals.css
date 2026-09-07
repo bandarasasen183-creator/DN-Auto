@@ -2656,3 +2656,94 @@ a, button, .pick, .slot, .cal__day { touch-action: manipulation; }
   .appupdate { flex-wrap: wrap; }
   .appupdate__body { flex-basis: 100%; }
 }
+
+/* =====================================================================
+   The board — what is in the workshop right now
+
+   Three columns, oldest first, because the car that has been waiting
+   longest is the one somebody should be looking at.
+   ===================================================================== */
+.board {
+  display: grid;
+  gap: 1rem;
+  align-items: start;
+}
+@media (min-width: 900px) {
+  .board { grid-template-columns: repeat(3, 1fr); }
+}
+
+.board__col {
+  background: rgb(0 0 0 / 0.02);
+  border: 1px solid var(--steel-100);
+  border-radius: 14px;
+  padding: 0.85rem;
+}
+
+.board__col h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+}
+
+.board__count {
+  min-width: 1.6rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.06);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.board__empty { margin: 0.25rem 0 0; }
+.board__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
+
+.tkt { border-radius: 10px; background: #fff; border: 1px solid var(--steel-100); }
+.tkt a {
+  display: block;
+  padding: 0.75rem 0.85rem;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 10px;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.tkt a:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgb(0 0 0 / 0.07); }
+
+.tkt__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+}
+
+.tkt__complaint {
+  margin: 0 0 0.5rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tkt__meta { display: flex; flex-wrap: wrap; gap: 0.75rem; color: var(--steel-400); }
+.tkt__meta span { display: inline-flex; align-items: center; gap: 0.25rem; }
+
+.tkt__flag {
+  margin: 0.5rem 0 0;
+  padding-top: 0.4rem;
+  border-top: 1px dashed var(--steel-200);
+  color: var(--danger, #b42318);
+  font-weight: 600;
+}
+.tkt__flag--soon { color: var(--amber-600, #92400e); }
+
+/* A promise the workshop is about to miss should be visible from across
+   the room, not found by reading each card. */
+.tkt--late { border-color: rgb(180 35 24 / 0.45); box-shadow: inset 3px 0 0 var(--danger, #b42318); }
+.tkt--soon { border-color: rgb(245 165 36 / 0.5); box-shadow: inset 3px 0 0 var(--amber-500, #b45309); }
+
+.plate--sm { padding: 0.2rem 0.5rem; font-size: 0.9rem; border-width: 1px; }

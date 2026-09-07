@@ -25,9 +25,17 @@ function Submit() {
   );
 }
 
-export default function InvoiceBuilder({ services, bookings, preselectedBooking, mechanics = [] }) {
+export default function InvoiceBuilder({
+  services,
+  bookings,
+  preselectedBooking,
+  mechanics = [],
+  tickets = [],
+  preselectedTicket = '',
+}) {
   const [items, setItems] = useState([{ ...BLANK }]);
   const [bookingId, setBookingId] = useState(preselectedBooking || '');
+  const [ticketId, setTicketId] = useState(preselectedTicket || '');
   const [state, action] = useFormState(createInvoice, {});
 
   const subtotal = useMemo(
@@ -76,6 +84,12 @@ export default function InvoiceBuilder({ services, bookings, preselectedBooking,
   }
 
   const booking = bookings.find((b) => b.id === bookingId);
+  const ticket = tickets.find((t) => t.id === ticketId);
+
+  // Details already typed when the car arrived. Retyping them at the
+  // counter is how a bill ends up under a slightly different name to the
+  // ticket, and then neither can be found.
+  const known = ticket ?? booking;
 
   return (
     <form action={action} className="grid" style={{ gridTemplateColumns: 'minmax(0, 2fr) minmax(300px, 1fr)', alignItems: 'start' }}>
@@ -83,25 +97,56 @@ export default function InvoiceBuilder({ services, bookings, preselectedBooking,
         {state?.error && <p className="form-error">{state.error}</p>}
 
         <h3>Who is this for?</h3>
+
+        {tickets.length > 0 && (
+          <label className="field">
+            <span>A car in the workshop</span>
+            <select
+              className="select"
+              name="ticket_id"
+              value={ticketId}
+              onChange={(e) => {
+                setTicketId(e.target.value);
+                if (e.target.value) setBookingId('');
+              }}
+            >
+              <option value="">Not from a ticket</option>
+              {tickets.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.registration} — {t.customer_name || 'walk-in'} ({t.complaint.slice(0, 40)}
+                  {t.complaint.length > 40 ? '…' : ''})
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+
         <label className="field">
-          <span>Against a job (optional)</span>
+          <span>Against a booking (today only)</span>
           <select
             className="select"
             name="booking_id"
             value={bookingId}
-            onChange={(e) => setBookingId(e.target.value)}
+            onChange={(e) => {
+              setBookingId(e.target.value);
+              if (e.target.value) setTicketId('');
+            }}
+            disabled={Boolean(ticketId)}
           >
-            <option value="">Walk-in — no booking</option>
+            <option value="">
+              {bookings.length === 0 ? 'No bookings today' : 'Walk-in — no booking'}
+            </option>
             {bookings.map((b) => (
               <option key={b.id} value={b.id}>
-                {b.reference} — {b.profiles?.full_name}
+                {new Date(b.scheduled_for).toLocaleTimeString('en-LK', { timeStyle: 'short' })} —{' '}
+                {b.profiles?.full_name}
                 {b.vehicles ? ` (${b.vehicles.registration})` : ''}
               </option>
             ))}
           </select>
         </label>
 
-        {!booking && (
+        {!known && (
           <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
             <label className="field">
               <span>Customer name</span>
@@ -118,13 +163,21 @@ export default function InvoiceBuilder({ services, bookings, preselectedBooking,
           </div>
         )}
 
+        {ticket && (
+          <p className="form-note">
+            From ticket <strong>{ticket.number}</strong> — {ticket.complaint}
+            {ticket.assigned_name ? ` · worked on by ${ticket.assigned_name}` : ''}
+          </p>
+        )}
+
         <div className="grid" style={{ gridTemplateColumns: 'minmax(160px, 1fr) minmax(200px, 2fr)' }}>
           <label className="field">
             <span>Registration</span>
             <input
               className="input"
               name="registration"
-              defaultValue={booking?.vehicles?.registration ?? ''}
+              key={`reg-${ticketId}-${bookingId}`}
+              defaultValue={ticket?.registration ?? booking?.vehicles?.registration ?? ''}
               placeholder="CAB-1234"
               style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}
               autoComplete="off"
@@ -135,10 +188,13 @@ export default function InvoiceBuilder({ services, bookings, preselectedBooking,
             <input
               className="input"
               name="vehicle_note"
+              key={`veh-${ticketId}-${bookingId}`}
               defaultValue={
-                booking?.vehicles
-                  ? `${booking.vehicles.make} ${booking.vehicles.model}`
-                  : ''
+                ticket
+                  ? [ticket.make, ticket.model].filter(Boolean).join(' ')
+                  : booking?.vehicles
+                    ? `${booking.vehicles.make} ${booking.vehicles.model}`
+                    : ''
               }
               placeholder="Toyota Aqua"
             />
@@ -161,6 +217,8 @@ export default function InvoiceBuilder({ services, bookings, preselectedBooking,
             className="input"
             name="performed_by_name"
             list="dn-mechanics"
+            key={`by-${ticketId}`}
+            defaultValue={ticket?.assigned_name ?? ''}
             placeholder="Name of the mechanic"
             autoComplete="off"
           />
