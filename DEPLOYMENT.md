@@ -46,15 +46,16 @@ engines fold the alias into the canonical domain rather than ranking both.
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Everywhere | Yes |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Everywhere | Yes |
-| `SUPABASE_SERVICE_ROLE_KEY` | Reserved for admin scripts. **Never** expose it to the browser | No |
+| `SUPABASE_SERVICE_ROLE_KEY` | Inbound email, which has no signed-in user to run row-level security as. **Never** expose it to the browser | For the mailbox |
 | `ANTHROPIC_API_KEY` | DN Assist. Without it the assistant returns a clear "not configured" message rather than failing | No |
 | `NEXT_PUBLIC_ROOT_DOMAIN` | Overrides `dnauto.lk`, e.g. on a staging deploy | No |
 | `NEXT_PUBLIC_ALIAS_DOMAINS` | Comma-separated domains that redirect to the canonical one | No |
 | `NEXT_PUBLIC_SITE_URL` | Absolute base for canonical links and the sitemap | No |
 | `WEBXPAY_MERCHANT_ID` / `WEBXPAY_SECRET` | WEBXPAY online adapter | When going live |
 | `WEBXPAY_TERMINAL_URL` / `WEBXPAY_TERMINAL_KEY` | Card terminal. WEBXPAY have confirmed there is no API, so these stay empty and handover captures the method and a signature instead | No |
-| `RESEND_API_KEY` | Emailing service history to customers. Without it the app says email isn't set up rather than failing quietly | To email anything |
-| `RESEND_FROM` | The address customers see, e.g. `DN Auto Repairs <service@dnauto.lk>`. Must be on a domain verified in Resend | With the above |
+| `RESEND_API_KEY` | Sending and receiving email. Without it the app says email isn't set up rather than failing quietly | To email anything |
+| `RESEND_FROM` | The address customers see, e.g. `DN Auto Repairs <service@send.dnauto.lk>`. Must be on a domain verified in Resend | With the above |
+| `RESEND_WEBHOOK_SECRET` | Signs the inbound webhook. Without it the mailbox refuses every delivery, since it can't tell Resend from anyone who found the URL | For the mailbox |
 | `ANDROID_CERT_FINGERPRINT` / `ANDROID_PACKAGE_ID` | Vouches for the installed Android app at `/.well-known/assetlinks.json`. See [APK.md](APK.md) | Only if building the APK |
 | `KOKO_MERCHANT_ID` / `KOKO_SECRET` | Koko adapter | When going live |
 | `PAYABLE_TERMINAL_ID` / `PAYABLE_API_KEY` | Pushing amounts to the POS terminal | Optional |
@@ -122,25 +123,34 @@ Send from a subdomain — `RESEND_FROM="DN Auto Repairs <service@send.dnauto.lk>
 damages the reputation of whatever domain sent it, and it should not be the
 one your actual business mail arrives on.
 
-**Receiving — Cloudflare Email Routing.** Resend does not give you a mailbox;
-nothing arrives at `admin@dnauto.lk` because of it. Cloudflare Email Routing
-is free, adds its own MX records, and forwards addresses on the domain to an
-inbox you already have:
+**Receiving — Resend Inbound.** Mail to the workshop lands in the app, at
+**Worker → Mailbox**, and is answered from there.
 
-**Cloudflare → Email → Email Routing → Get started.**
+1. **Resend → Domains → dnauto.lk → Inbound → Enable.** Resend gives you an
+   MX record. Add it in Cloudflare on the root:
 
-| Address | Forwards to |
-|---|---|
-| `admin@dnauto.lk` | your existing inbox |
-| `info@dnauto.lk` | whoever answers enquiries |
+   | Type | Name | Value | Priority | Proxy |
+   |---|---|---|---|---|
+   | MX | `@` | *(the host Resend shows)* | 10 | DNS only |
 
-Cloudflare adds the MX and SPF records itself. Do not hand-write MX records
-alongside it — two sets of MX for one domain means mail arrives at whichever
-answers first, which is not a coin toss you want to run on customer email.
+2. **Resend → Webhooks → Add endpoint**, pointed at
+   `https://dnauto.lk/api/email/inbound`, subscribed to **`email.received`**.
+3. Copy the signing secret into `RESEND_WEBHOOK_SECRET` on Vercel, and make
+   sure `SUPABASE_SERVICE_ROLE_KEY` is set there too — the webhook has no
+   signed-in user, so it writes as the service role.
 
-Forwarding is receive-only. If you later need to *send* as
-`admin@dnauto.lk` from a mail client, that is when Google Workspace or Zoho
-becomes worth paying for — not before.
+> **One MX setup per domain.** If you switched on Cloudflare Email Routing
+> earlier, turn it off before adding Resend's MX. Two sets of MX records on
+> one domain means mail arrives at whichever answers first, which is not a
+> coin toss to run on customer email.
+
+Everything to `@dnauto.lk` then arrives in the app — `info@`, `admin@`, all
+of it. Resend keeps the message even if the webhook is down and retries, so
+an outage delays mail rather than losing it.
+
+If somebody also wants a copy in a normal inbox — supplier invoices your dad
+would rather read on his phone — Resend can forward those on. That is a rule
+in Resend's dashboard, not a change here.
 
 ### dnauto.org — the alias
 

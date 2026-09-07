@@ -171,11 +171,38 @@ is linked to it automatically.
 
 ## Email
 
-Service history goes out through [Resend](https://resend.com)
-(`lib/email/index.js`). A customer asking for "the paperwork" gets everything
-recorded against their vehicle — every visit, and every warranty still in date
-— not just the bill in front of them. Every send is written to `messages`, so
-"you never sent it" is answerable from the record.
+Both directions, through [Resend](https://resend.com) (`lib/email/index.js`).
+
+**Out.** Service history goes to customers on request — everything recorded
+against their vehicle, every visit and every warranty still in date, not just
+the bill in front of them. Sends are written to `messages`, so "you never sent
+it" is answerable from the record.
+
+**In.** Mail to `@dnauto.lk` lands in the app at **Worker → Mailbox** rather
+than in somebody's personal inbox, and is answered from there. Resend takes
+delivery and posts `email.received` to `app/api/email/inbound`, which pulls
+the body back through the Receiving API and files it into a thread.
+
+Threads, not messages: a customer's question and our answer three hours later
+are one conversation, and reading half of it is worse than reading none. New
+mail is threaded on the real `In-Reply-To` and `References` headers first,
+falling back to sender and subject only when a message carries none — and
+replies carry those headers back out, so our answer lands under the customer's
+original message in *their* mail client instead of starting a new thread.
+
+Threads link themselves to a contact or customer when the address matches, and
+to a vehicle when the subject or body mentions a plate the workshop has
+actually seen before. A four-digit number that merely looks like a plate is
+left alone — attaching a stranger's email to somebody's vehicle history is a
+worse failure than not linking it at all.
+
+Two things worth knowing about the webhook: it verifies Resend's signature
+before doing anything, because it is otherwise a public URL that writes to the
+database; and it is deliberately idempotent, since Resend retries until it
+gets a 200 and the same message will arrive more than once.
+
+Inbound HTML is displayed as text, never rendered. Nobody who emails the
+workshop gets to run markup inside the portal.
 
 Without `RESEND_API_KEY` the app says so plainly rather than failing quietly,
 on the same principle as the payment adapters: a receipt that silently never
