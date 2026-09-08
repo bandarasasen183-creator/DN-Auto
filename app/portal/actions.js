@@ -133,6 +133,23 @@ export async function createBooking(_prevState, formData) {
     }
   }
 
+  // Create synced ticket for walk-in flow
+  const { data: customer } = await supabase.from('profiles').select('full_name, phone').eq('id', profile.id).maybeSingle();
+  
+  await supabase.from('tickets').insert({
+    registration,
+    make,
+    model,
+    colour: null,
+    customer_id: profile.id,
+    booking_id: data.id,
+    customer_name: customer?.full_name || null,
+    customer_phone: customer?.phone || null,
+    complaint: notes || `Scheduled service: ${serviceId}`,
+    status: 'waiting',
+    opened_by: profile.id, // technically the customer opened it online
+  });
+
   revalidatePath('/portal');
   revalidatePath('/portal/bookings');
   return {

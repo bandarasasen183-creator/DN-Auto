@@ -356,9 +356,25 @@ export async function addStaffWithoutAccount(_prevState, formData) {
   const fullName = String(formData.get('full_name') ?? '').trim();
   if (!fullName) return { error: 'Please enter a name.' };
   
-  const id = crypto.randomUUID();
+  const { createClient: createServiceClient } = await import('@supabase/supabase-js');
+  const serviceClient = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+
+  const dummyEmail = `worker_${crypto.randomUUID()}@dummy.dnauto.lk`;
   
-  const { error } = await supabase.from('profiles').insert({
+  const { data: authData, error: authError } = await serviceClient.auth.admin.createUser({
+    email: dummyEmail,
+    password: crypto.randomUUID(),
+    email_confirm: true,
+  });
+
+  if (authError) return { error: `Auth Error: ${authError.message}` };
+
+  const id = authData.user.id;
+
+  const { error } = await supabase.from('profiles').upsert({
     id,
     full_name: fullName,
     role: 'worker',
@@ -366,10 +382,6 @@ export async function addStaffWithoutAccount(_prevState, formData) {
   });
   
   if (error) {
-    // If FK constraint to auth.users fails, it means we MUST have an auth account.
-    if (error.code === '23503') {
-      return { error: 'Database constraint: Cannot create a profile without a real login account.' };
-    }
     return { error: error.message };
   }
   

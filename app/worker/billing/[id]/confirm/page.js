@@ -25,8 +25,6 @@ export default async function ConfirmPage({ params }) {
   if (!invoice) notFound();
 
   const outstanding = Number(invoice.total_cents) - Number(invoice.paid_cents);
-  // Nothing left to take means nothing to sign for — send them to the receipt.
-  if (outstanding <= 0) redirect(`/worker/billing/${invoice.id}`);
 
   return (
     <main className="handover-screen">

@@ -1,3 +1,4 @@
+import HistoryPopups from "@/components/HistoryPopups";
 import Link from 'next/link';
 import PortalShell from '@/components/PortalShell';
 import Icon from '@/components/Icon';
@@ -71,7 +72,7 @@ export default async function HistoryPage({ searchParams }) {
                       </div>
                     )}
                     <div style={{ marginTop: '1rem' }}>
-                       <Link href={`/worker/billing/${invoice.id}`} className="btn btn--ghost small">View invoice</Link>
+                       <Link href={`?q=${encodeURIComponent(q)}&popup=invoice&popupId=${invoice.id}`} scroll={false} className="btn btn--ghost small">View invoice</Link>
                     </div>
                   </div>
                 ))
@@ -100,6 +101,11 @@ export default async function HistoryPage({ searchParams }) {
                         <p className={`small ${live ? 'form-note' : 'muted'}`} style={{ margin: 0 }}>
                           {live ? `Covered until ${new Date(w.expires_on).toLocaleDateString('en-LK')}` : `Expired ${new Date(w.expires_on).toLocaleDateString('en-LK')}`}
                         </p>
+                        <div className="row" style={{ marginTop: '0.75rem' }}>
+                          <Link href={`?q=${encodeURIComponent(q)}&popup=invoice&popupId=${w.invoice_id}`} scroll={false} className="btn btn--ghost small" style={{ marginLeft: '-0.5rem' }}>
+                            View invoice
+                          </Link>
+                        </div>
                       </div>
                     )
                   })}
@@ -109,6 +115,7 @@ export default async function HistoryPage({ searchParams }) {
           </div>
         )}
       </section>
+      <HistoryPopups />
     </PortalShell>
   );
 }

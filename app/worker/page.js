@@ -78,7 +78,7 @@ export default async function WorkerHome() {
                     <div>
                       <strong style={{ color: isLate ? 'var(--red)' : 'inherit' }}>{t.registration}</strong>
                       <p className="small muted" style={{ margin: 0 }}>
-                        {t.complaint.length > 35 ? t.complaint.slice(0, 35) + '…' : t.complaint}
+                        {t.complaint ? (t.complaint.length > 35 ? t.complaint.slice(0, 35) + '…' : t.complaint) : 'No specific complaint'}
                       </p>
                     </div>
                     <div style={{ textAlign: 'right' }}>

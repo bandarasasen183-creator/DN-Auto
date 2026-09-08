@@ -50,6 +50,25 @@ function readItems(formData) {
           ? defaultWarrantyFor(kind)
           : Math.max(0, Math.round(Number(typed) || 0));
 
+      const comm = formData.getAll('item_commission')[i] || '';
+      let commCents = 0;
+      let commRule = null;
+      if (comm) {
+        if (comm.includes('%')) {
+          const pct = parseFloat(comm.replace('%', ''));
+          if (!isNaN(pct)) {
+            commCents = Math.round((prices[i] || 0) * 100 * (pct / 100));
+            commRule = `${pct}%`;
+          }
+        } else {
+          const flat = Number(comm);
+          if (!isNaN(flat)) {
+            commCents = Math.round(flat * 100);
+            commRule = `Rs ${flat}`;
+          }
+        }
+      }
+
       return {
         description: description.trim(),
         kind,
@@ -57,6 +76,8 @@ function readItems(formData) {
         unit_price_cents: Math.round((prices[i] || 0) * 100),
         warranty_months: months,
         sort_order: i,
+        commission_amount_cents: commCents,
+        commission_rule: commRule,
       };
     })
     .filter((item) => item.description && item.unit_price_cents > 0);
@@ -398,6 +419,14 @@ export async function settleTerminalRequest(_prevState, formData) {
     })
     .eq('id', requestId);
 
+  if (outcome === "paid") {
+    const { data: invoice } = await supabase.from("invoices").select("customer_phone").eq("id", request.invoice_id).maybeSingle();
+    if (invoice?.customer_phone) {
+      const { sendNotification } = await import("@/lib/notifications");
+      await sendNotification(invoice.customer_phone, `We have received your payment of Rs. ${request.amount_cents / 100} for DN Auto.`);
+    }
+  }
+
   revalidatePath(`/worker/billing/${request.invoice_id}`);
   redirect(`/worker/billing/${request.invoice_id}?settled=${outcome}`);
 }
@@ -423,6 +452,12 @@ export async function recordCounterPayment(_prevState, formData) {
   });
 
   if (error) return { error: error.message };
+
+  const { data: invoice } = await supabase.from('invoices').select('customer_phone').eq('id', invoiceId).maybeSingle();
+  if (invoice?.customer_phone) {
+    const { sendNotification } = await import('@/lib/notifications');
+    await sendNotification(invoice.customer_phone, `We have received your payment of Rs. ${rupees} for DN Auto.`);
+  }
 
   revalidatePath(`/worker/billing/${invoiceId}`);
   return { success: true };

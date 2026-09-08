@@ -1,4 +1,5 @@
 'use client';
+import Link from "next/link";
 
 import { useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
@@ -15,7 +16,7 @@ function Submit({ label }) {
   );
 }
 
-export default function TicketForm({ bays, mechanics, bookings, preselectedBooking }) {
+export default function TicketForm({ mechanics, bookings, preselectedBooking }) {
   const [state, submit] = useFormState(openTicket, {});
   const [queued, setQueued] = useState(null);
 
@@ -113,13 +114,14 @@ export default function TicketForm({ bays, mechanics, bookings, preselectedBooki
               />
             </label>
             <label className="field" style={{ margin: 0 }}>
-              <span>Name (optional)</span>
+              <span>Name (required)</span>
               <input 
                 className="input" 
                 name="customer_name"
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="Walk-in customer" 
+                required
               />
             </label>
           </div>
@@ -130,7 +132,16 @@ export default function TicketForm({ bays, mechanics, bookings, preselectedBooki
           <div className="field" style={{ margin: 0 }}>
             {knownCars.length > 0 ? (
               <div className="stack" style={{ '--gap': '0.75rem' }}>
-                <span className="small muted">Select from known vehicles or enter a new one:</span>
+                <div className="row" style={{ justifyContent: 'space-between' }}>
+                  <span className="small muted">Select from known vehicles or enter a new one:</span>
+                  <Link 
+                    href={`/worker/history?q=${encodeURIComponent(phone)}`}
+                    className="small"
+                    style={{ color: 'var(--brand)', textDecoration: 'none', fontWeight: 600 }}
+                  >
+                    View Timeline
+                  </Link>
+                </div>
                 {knownCars.map(c => (
                   <button
                     type="button"
@@ -192,13 +203,12 @@ export default function TicketForm({ bays, mechanics, bookings, preselectedBooki
         <div className="card rise">
           <h3 style={{ marginTop: 0, marginBottom: '1.25rem' }}>Job Details</h3>
           <label className="field">
-            <span>What&apos;s wrong? (Required)</span>
+            <span>What&apos;s wrong? (Optional)</span>
             <textarea
               className="input"
               name="complaint"
               rows={2}
               placeholder="Makes a grinding noise going round left corners..."
-              required
             />
           </label>
 

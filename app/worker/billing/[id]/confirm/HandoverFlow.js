@@ -171,7 +171,7 @@ export default function HandoverFlow({ invoice, outstandingCents }) {
   const [queued, setQueued] = useState(false);
   const [state, action] = useFormState(completeHandover, {});
   const [releaseState, releaseAction] = useFormState(releaseHandover, {});
-  const [phase, setPhase] = useState('form');
+  const [phase, setPhase] = useState(outstandingCents <= 0 ? 'review' : 'form');
 
   // This app never touches the card machine — WEBXPAY has no API — so
   // "complete" only records that a payment happened and the customer

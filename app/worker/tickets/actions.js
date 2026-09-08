@@ -73,10 +73,9 @@ export async function openTicket(_prevState, formData) {
   const supabase = createClient();
 
   const registration = formatPlate(formData.get('registration'));
-  const complaint = String(formData.get('complaint') ?? '').trim();
+  const complaint = String(formData.get('complaint') ?? '').trim() || null;
 
   if (!registration) return { error: 'The registration is how this car is found again.' };
-  if (!complaint) return { error: 'Write down what the customer says is wrong.' };
 
   const name = String(formData.get('customer_name') ?? '').trim();
   const phone = String(formData.get('customer_phone') ?? '').trim();
@@ -117,9 +116,7 @@ export async function openTicket(_prevState, formData) {
       customer_phone: phone || null,
       complaint,
       notes: String(formData.get('notes') ?? '').trim() || null,
-      bay_id: String(formData.get('bay_id') ?? '') || null,
       assigned_name: String(formData.get('assigned_name') ?? '').trim() || null,
-      keys_location: String(formData.get('keys_location') ?? '').trim() || null,
       promised_ready_at: promisedRaw ? new Date(promisedRaw).toISOString() : null,
       opened_by: profile.id,
     })
@@ -148,7 +145,7 @@ export async function moveTicket(_prevState, formData) {
 
   const { data: ticket } = await supabase
     .from('tickets')
-    .select('id, status')
+    .select('id, status, customer_phone')
     .eq('id', ticketId)
     .maybeSingle();
 
@@ -160,6 +157,11 @@ export async function moveTicket(_prevState, formData) {
 
   const { error } = await supabase.from('tickets').update({ status }).eq('id', ticketId);
   if (error) return { error: error.message };
+
+  if (status === 'ready' && ticket.customer_phone) {
+    const { sendNotification } = await import('@/lib/notifications');
+    await sendNotification(ticket.customer_phone, 'Your vehicle is ready for collection at DN Auto.');
+  }
 
   revalidatePath('/worker/tickets');
   revalidatePath(`/worker/tickets/${ticketId}`);
@@ -177,9 +179,7 @@ export async function updateTicket(_prevState, formData) {
   const { error } = await supabase
     .from('tickets')
     .update({
-      bay_id: String(formData.get('bay_id') ?? '') || null,
       assigned_name: String(formData.get('assigned_name') ?? '').trim() || null,
-      keys_location: String(formData.get('keys_location') ?? '').trim() || null,
       notes: String(formData.get('notes') ?? '').trim() || null,
       promised_ready_at: promisedRaw ? new Date(promisedRaw).toISOString() : null,
     })
@@ -187,7 +187,11 @@ export async function updateTicket(_prevState, formData) {
 
   if (error) return { error: error.message };
 
+  // We revalidate the boards so they show the new notes/mechanic
+  revalidatePath('/worker');
+  revalidatePath('/worker/tickets');
   revalidatePath(`/worker/tickets/${ticketId}`);
+  
   return { success: true };
 }
 

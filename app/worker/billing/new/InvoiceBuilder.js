@@ -12,7 +12,7 @@ import FaceScanner from '@/components/FaceScanner';
  * typing straight over it is just as valid, because half of what a
  * workshop charges for was never on a price list.
  */
-const BLANK = { description: '', kind: 'labour', quantity: 1, price: '', warranty: '' };
+const BLANK = { description: '', kind: 'labour', quantity: 1, price: '', warranty: '', commission: '' };
 
 /** What the warranty box pre-fills to. The mechanic can change it. */
 const DEFAULT_WARRANTY = { part: 6, labour: 0 };
@@ -116,8 +116,7 @@ export default function InvoiceBuilder({
               <option value="">Not from a ticket</option>
               {tickets.map((t) => (
                 <option key={t.id} value={t.id}>
-                  {t.registration} — {t.customer_name || 'walk-in'} ({t.complaint.slice(0, 40)}
-                  {t.complaint.length > 40 ? '…' : ''})
+                  {t.registration} — {t.customer_name || 'walk-in'} {t.complaint ? `(${t.complaint.slice(0, 40)}${t.complaint.length > 40 ? '…' : ''})` : ''}
                 </option>
               ))}
             </select>
@@ -226,16 +225,18 @@ export default function InvoiceBuilder({
         <label className="field">
           <span>Who did the work?</span>
           <div className="grid" style={{ gridTemplateColumns: '1fr auto', gap: '0.5rem' }}>
-            <input
-              className="input"
+            <select
+              className="select"
               name="performed_by_name"
-              list="dn-mechanics"
               key={`by-${ticketId}`}
               value={assignedName || ticket?.assigned_name || ''}
               onChange={(e) => setAssignedName(e.target.value)}
-              placeholder="Name of the mechanic"
-              autoComplete="off"
-            />
+            >
+              <option value="">Select a mechanic...</option>
+              {mechanics.map((m) => (
+                <option key={m.id} value={m.full_name}>{m.full_name}</option>
+              ))}
+            </select>
             <button 
               type="button" 
               className="btn btn--ghost" 
@@ -245,11 +246,6 @@ export default function InvoiceBuilder({
               <Icon name="scan" size={20} />
             </button>
           </div>
-          <datalist id="dn-mechanics">
-            {mechanics.map((m) => (
-              <option key={m.id} value={m.full_name} />
-            ))}
-          </datalist>
         </label>
 
         {showFaceScanner && (
@@ -330,6 +326,18 @@ export default function InvoiceBuilder({
                   onChange={(e) => update(i, 'warranty', e.target.value)}
                   placeholder={String(DEFAULT_WARRANTY[item.kind])}
                   title="0 means no cover on this line. Parts default to 6 months."
+                />
+              </label>
+
+              <label className="field" style={{ margin: 0 }}>
+                <span>Commission</span>
+                <input
+                  className="input"
+                  name="item_commission"
+                  value={item.commission || ''}
+                  onChange={(e) => update(i, 'commission', e.target.value)}
+                  placeholder="e.g. 10% or 1000"
+                  title="Enter percentage (e.g. 10%) or flat amount"
                 />
               </label>
 

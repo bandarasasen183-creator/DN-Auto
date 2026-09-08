@@ -34,9 +34,6 @@ function Card({ ticket }) {
           {ticket.assigned_name && (
             <span><Icon name="users" size={12} /> {ticket.assigned_name}</span>
           )}
-          {ticket.bays?.name && (
-            <span><Icon name="bay" size={12} /> {ticket.bays.name}</span>
-          )}
         </div>
 
         {promise === 'late' && (

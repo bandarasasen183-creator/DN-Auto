@@ -11,8 +11,7 @@ export default async function NewTicketPage({ searchParams }) {
   const { profile } = await requireRole(['worker', 'admin'], { from: '/worker/tickets/new' });
   const supabase = createClient();
 
-  const [{ data: bays }, { data: mechanics }, { data: bookings }] = await Promise.all([
-    supabase.from('bays').select('id, name').eq('is_active', true).order('name'),
+  const [{ data: mechanics }, { data: bookings }] = await Promise.all([
     supabase
       .from('profiles')
       .select('id, full_name')
@@ -39,7 +38,6 @@ export default async function NewTicketPage({ searchParams }) {
       subtitle="Booked or not — this is what opens the job."
     >
       <TicketForm
-        bays={bays ?? []}
         mechanics={mechanics ?? []}
         bookings={bookings ?? []}
         preselectedBooking={searchParams?.booking ?? ''}

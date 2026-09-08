@@ -41,11 +41,11 @@ export default function PaymentPanel({ invoiceId, outstandingCents }) {
           <input type="hidden" name="invoice_id" value={invoiceId} />
 
           <label className="field">
-            <span>Terminal / tablet</span>
-            <input className="input" name="terminal_code" placeholder="Bay 1" autoComplete="off" />
+            <span>Terminal / tablet name</span>
+            <input className="input" name="terminal_code" placeholder="Tablet 1" autoComplete="off" />
           </label>
           <p className="small muted">
-            Naming the tablet lets takings be split by bay at the end of the day.
+            Naming the tablet helps identify which device was used.
           </p>
 
           <Submit idle="Pay now on the machine" busy="Sending…" big />

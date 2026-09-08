@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import Icon from '@/components/Icon';
 import FaceScanner from '@/components/FaceScanner';
@@ -91,10 +91,12 @@ function Save() {
   );
 }
 
-export function TicketDetails({ ticket, bays, mechanics }) {
+export function TicketDetails({ ticket, mechanics }) {
   const [state, action] = useFormState(updateTicket, {});
   const [showFaceScanner, setShowFaceScanner] = useState(false);
   const [assignedName, setAssignedName] = useState('');
+
+  const formRef = useRef(null);
 
   // datetime-local wants the local wall clock, not an ISO string in UTC.
   const promised = ticket.promised_ready_at
@@ -106,34 +108,39 @@ export function TicketDetails({ ticket, bays, mechanics }) {
     : '';
 
   return (
-    <form action={action} className="card">
+    <form 
+      ref={formRef} 
+      action={action} 
+      className="card"
+    >
       <input type="hidden" name="ticket_id" value={ticket.id} />
       <h3 style={{ marginTop: 0 }}>Where and who</h3>
 
       {state?.error && <p className="form-error">{state.error}</p>}
       {state?.success && <p className="form-note">Saved.</p>}
 
-      <label className="field">
-        <span>Bay</span>
-        <select className="select" name="bay_id" defaultValue={ticket.bay_id ?? ''}>
-          <option value="">Not assigned</option>
-          {bays.map((b) => (
-            <option key={b.id} value={b.id}>{b.name}</option>
-          ))}
-        </select>
-      </label>
+
 
       <label className="field">
         <span>Mechanic</span>
         <div className="grid" style={{ gridTemplateColumns: '1fr auto', gap: '0.5rem' }}>
-          <input
-            className="input"
+          <select
+            className="select"
             name="assigned_name"
-            list="dn-detail-mechanics"
             value={assignedName || ticket.assigned_name || ''}
-            onChange={(e) => setAssignedName(e.target.value)}
-            autoComplete="off"
-          />
+            onChange={(e) => {
+              setAssignedName(e.target.value);
+              // Auto-save logic just for mechanic change
+              setTimeout(() => {
+                if (formRef.current) formRef.current.requestSubmit();
+              }, 0);
+            }}
+          >
+            <option value="">Select a mechanic...</option>
+            {mechanics.map((m) => (
+              <option key={m.id} value={m.full_name}>{m.full_name}</option>
+            ))}
+          </select>
           <button 
             type="button" 
             className="btn btn--ghost" 
@@ -143,11 +150,6 @@ export function TicketDetails({ ticket, bays, mechanics }) {
             <Icon name="scan" size={20} />
           </button>
         </div>
-        <datalist id="dn-detail-mechanics">
-          {mechanics.map((m) => (
-            <option key={m.id} value={m.full_name} />
-          ))}
-        </datalist>
       </label>
 
       {showFaceScanner && (
@@ -156,26 +158,39 @@ export function TicketDetails({ ticket, bays, mechanics }) {
           onIdentified={(name) => {
             setAssignedName(name);
             setShowFaceScanner(false);
+            // Auto submit immediately after setting state
+            setTimeout(() => {
+              if (formRef.current) formRef.current.requestSubmit();
+            }, 0);
           }} 
           onClose={() => setShowFaceScanner(false)} 
         />
       )}
 
-      <label className="field">
-        <span>Keys</span>
-        <input className="input" name="keys_location" defaultValue={ticket.keys_location ?? ''} placeholder="Hook 3" />
-      </label>
+
 
       <label className="field">
         <span>Ready by</span>
-        <input className="input" name="promised_ready_at" type="datetime-local" defaultValue={promised} />
+        <input 
+          className="input" 
+          name="promised_ready_at" 
+          type="datetime-local" 
+          defaultValue={promised} 
+          onBlur={() => formRef.current?.requestSubmit()}
+        />
       </label>
 
       <label className="field">
         <span>Notes</span>
-        <input className="input" name="notes" defaultValue={ticket.notes ?? ''} />
+        <input 
+          className="input" 
+          name="notes" 
+          defaultValue={ticket.notes ?? ''} 
+          onBlur={() => formRef.current?.requestSubmit()}
+        />
       </label>
 
+      {/* Save button is now completely optional since everything auto-saves, but good to keep as a manual fallback */}
       <Save />
     </form>
   );

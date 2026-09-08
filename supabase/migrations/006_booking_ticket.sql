@@ -1,0 +1,1 @@
+-- We do not strictly need a new table. The tickets table has customer_id and booking_id.

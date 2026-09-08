@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from 'next/link';
 import Icon from '@/components/Icon';
 import { signOut } from '@/app/(auth)/actions';
@@ -18,23 +19,17 @@ export default function PortalShell({ profile, nav, current, title, subtitle, ac
       <MobileNav nav={nav} current={current} profile={profile} />
 
       <nav className="shell__nav" aria-label="Portal navigation">
-        <Link href="/" className="row" style={{ fontWeight: 700, letterSpacing: '0.08em', color: '#fff' }}>
-          <span
-            aria-hidden
-            style={{
-              width: 32,
-              height: 32,
-              display: 'grid',
-              placeItems: 'center',
-              borderRadius: 8,
-              background: 'var(--amber-500)',
-              color: 'var(--ink-900)',
-              fontFamily: 'var(--font-display)',
-            }}
-          >
-            DN
-          </span>
-          <span>{BUSINESS.shortName.toUpperCase()}</span>
+
+        <Link href={nav[0]?.href || '/'} className="row" style={{ fontWeight: 700, letterSpacing: '0.08em', color: '#fff', textDecoration: 'none' }}>
+          <Image
+            src="/logo-small.png"
+            alt="DN Auto Logo"
+            width={32}
+            height={32}
+            style={{ borderRadius: 8, objectFit: 'contain' }}
+            priority
+          />
+          <span style={{ fontSize: '1.25rem' }}>{BUSINESS.shortName.toUpperCase()}</span>
         </Link>
 
         <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: '0.25rem' }}>

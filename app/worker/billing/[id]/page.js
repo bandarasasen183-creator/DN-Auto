@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import CommissionDisplay from "@/components/CommissionDisplay";
 import { notFound } from 'next/navigation';
 import PortalShell from '@/components/PortalShell';
 import Icon from '@/components/Icon';
@@ -26,7 +27,7 @@ export default async function InvoicePage({ params, searchParams }) {
       paid_cents, refunded_cents, customer_name, customer_phone, customer_email,
       vehicle_note, registration, performed_by_name, signature_png, signed_name,
       signed_at, notes, created_at, booking_id,
-      invoice_items(id, description, kind, quantity, unit_price_cents, warranty_months, sort_order),
+      invoice_items(id, description, kind, quantity, unit_price_cents, warranty_months, sort_order, commission_amount_cents),
       promotions(name, code),
       issuer:profiles!invoices_issued_by_fkey(full_name)
     `)
@@ -83,9 +84,10 @@ export default async function InvoicePage({ params, searchParams }) {
           <section className="card rise receipt">
             <header className="receipt__head">
               <div>
-                <strong style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem' }}>
-                  {BUSINESS.name}
-                </strong>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/logo-large.png" alt="DN Auto" className="print-logo-a4" style={{ height: 40, marginBottom: '0.5rem' }} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/logo-small.png" alt="DN Auto" className="print-logo-thermal" style={{ height: 40, marginBottom: '0.5rem', display: 'none' }} />
                 <p className="small muted" style={{ margin: 0 }}>
                   {BUSINESS.address.line1}, {BUSINESS.address.city} {BUSINESS.address.postcode}
                 </p>
@@ -201,7 +203,7 @@ export default async function InvoicePage({ params, searchParams }) {
             </p>
           </section>
 
-          <section className="card rise rise-1">
+          <section className="card rise rise-1 hide-on-print">
             <div className="row" style={{ justifyContent: 'space-between' }}>
               <h3 style={{ margin: 0 }}>Payments</h3>
               <PrintButton />
@@ -251,15 +253,20 @@ export default async function InvoicePage({ params, searchParams }) {
           </section>
         </div>
 
-        <aside className="stack rise rise-2" style={{ '--gap': '1.5rem' }}>
+        <aside className="stack rise rise-2 hide-on-print" style={{ '--gap': '1.5rem' }}>
           {outstanding > 0 ? (
             <PaymentPanel invoiceId={invoice.id} outstandingCents={outstanding} />
           ) : (
             <section className="card center">
               <div className="tick" aria-hidden><Icon name="check" size={28} /></div>
               <h3>Settled</h3>
-              <p className="small muted">Print the receipt and hand the keys over.</p>
-              <PrintButton />
+              <p className="small muted">Payment is sorted. Hand the tablet to the customer for them to review the service.</p>
+              <div className="row" style={{ gap: '0.5rem', marginTop: '0.5rem' }}>
+                <Link href={`/worker/billing/${invoice.id}/confirm`} className="btn">
+                  Customer Handover
+                </Link>
+                <PrintButton />
+              </div>
             </section>
           )}
 
@@ -275,6 +282,9 @@ export default async function InvoicePage({ params, searchParams }) {
           )}
         </aside>
       </div>
+
+      <CommissionDisplay invoice={invoice} role={profile.role} />
+
     </PortalShell>
   );
 }

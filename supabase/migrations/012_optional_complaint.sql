@@ -1,0 +1,1 @@
+ALTER TABLE tickets ALTER COLUMN complaint DROP NOT NULL;

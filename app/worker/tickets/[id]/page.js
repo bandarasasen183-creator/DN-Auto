@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import HistoryPopups from "@/components/HistoryPopups";
 import { notFound } from 'next/navigation';
 import PortalShell from '@/components/PortalShell';
 import Icon from '@/components/Icon';
@@ -27,10 +28,9 @@ export default async function TicketPage({ params }) {
     .from('tickets')
     .select(`
       id, number, status, registration, make, model, colour,
-      customer_name, customer_phone, complaint, notes, keys_location,
-      bay_id, assigned_name, promised_ready_at, opened_at, started_at,
+      customer_name, customer_phone, complaint, notes,
+      assigned_name, promised_ready_at, opened_at, started_at,
       ready_at, collected_at, booking_id, invoice_id, contact_id,
-      bays(name),
       opener:profiles!tickets_opened_by_fkey(full_name)
     `)
     .eq('id', params.id)
@@ -38,8 +38,7 @@ export default async function TicketPage({ params }) {
 
   if (!ticket) notFound();
 
-  const [{ data: bays }, { data: mechanics }, history] = await Promise.all([
-    supabase.from('bays').select('id, name').eq('is_active', true).order('name'),
+  const [{ data: mechanics }, history] = await Promise.all([
     supabase
       .from('profiles')
       .select('id, full_name')
@@ -91,7 +90,9 @@ export default async function TicketPage({ params }) {
               <li key={w.id}>
                 {w.description} — until{' '}
                 {new Date(w.expires_on).toLocaleDateString('en-LK', { dateStyle: 'long' })}
-                <span className="muted"> · {w.number}</span>
+                <Link href={`?popup=invoice&popupId=${w.invoice_id}`} scroll={false} className="muted" style={{ textDecoration: 'underline' }}>
+                  · {w.number}
+                </Link>
               </li>
             ))}
           </ul>
@@ -117,8 +118,6 @@ export default async function TicketPage({ params }) {
                   <a href={`tel:${ticket.customer_phone}`}>{ticket.customer_phone}</a>
                 </span>
               )}
-              {ticket.keys_location && <span><strong>Keys:</strong> {ticket.keys_location}</span>}
-              {ticket.bays?.name && <span><strong>Bay:</strong> {ticket.bays.name}</span>}
             </dl>
           </section>
 
@@ -174,7 +173,7 @@ export default async function TicketPage({ params }) {
               <ul className="small" style={{ margin: 0, paddingLeft: '1.1rem', display: 'grid', gap: '0.5rem' }}>
                 {previous.slice(0, 6).map((invoice) => (
                   <li key={invoice.id}>
-                    <Link href={`/worker/billing/${invoice.id}`}>
+                    <Link href={`?popup=invoice&popupId=${invoice.id}`} scroll={false}>
                       {new Date(invoice.created_at).toLocaleDateString('en-LK', { dateStyle: 'medium' })}
                     </Link>
                     {' — '}
@@ -214,9 +213,10 @@ export default async function TicketPage({ params }) {
             )
           )}
 
-          <TicketDetails ticket={ticket} bays={bays ?? []} mechanics={mechanics ?? []} />
+          <TicketDetails ticket={ticket} mechanics={mechanics ?? []} />
         </aside>
       </div>
+      <HistoryPopups />
     </PortalShell>
   );
 }

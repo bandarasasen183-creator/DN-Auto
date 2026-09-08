@@ -609,7 +609,7 @@ a {
 
 .timeline__item {
   position: relative;
-  padding-bottom: 1.25rem;
+  padding-bottom: 2rem;
   animation: rise var(--dur) var(--ease) both;
 }
 
@@ -1432,8 +1432,8 @@ a {
 .scopelist li span { color: var(--bad); font-weight: 700; }
 .scopelist--light li { color: var(--ink-700); }
 
-.ticklist { list-style: none; margin: 1.25rem 0 1.75rem; padding: 0; display: grid; gap: 0.6rem; }
-.ticklist li { position: relative; padding-left: 1.75rem; color: var(--steel-400); }
+.ticklist { list-style: none; margin: 1.25rem 0 1.75rem; padding: 0; display: grid; gap: 1rem; }
+.ticklist li { position: relative; padding-left: 1.75rem; padding-bottom: 0.5rem; color: var(--steel-400); }
 .ticklist li::before {
   content: '✓';
   position: absolute;
@@ -2781,3 +2781,23 @@ a, button, .pick, .slot, .cal__day { touch-action: manipulation; }
 
 .netbar__note { flex-basis: 100%; opacity: 0.85; }
 .netbar .btn { margin-left: auto; }
+
+/* --- Print Formats --- */
+@media print {
+  body.print-thermal .receipt {
+    width: 80mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 12px;
+  }
+  
+  body.print-thermal .print-logo-a4 { display: none !important; }
+  body.print-thermal .print-logo-thermal { display: block !important; margin: 0 auto 0.5rem; }
+  body.print-thermal .receipt__head { text-align: center; flex-direction: column; gap: 0.5rem; }
+  body.print-thermal .receipt__head > div { text-align: center !important; }
+
+  body.print-a4 .print-logo-thermal { display: none !important; }
+  body.print-a4 .print-logo-a4 { display: block !important; }
+  
+  .hide-on-print { display: none !important; }
+}
