@@ -5,6 +5,7 @@ import { useFormState, useFormStatus } from 'react-dom';
 import Icon from '@/components/Icon';
 import { createInvoice } from '../actions';
 import { formatLKR } from '@/lib/business';
+import FaceScanner from '@/components/FaceScanner';
 
 /**
  * A blank line is a custom line. Picking from the catalogue fills it in;
@@ -36,6 +37,8 @@ export default function InvoiceBuilder({
   const [items, setItems] = useState([{ ...BLANK }]);
   const [bookingId, setBookingId] = useState(preselectedBooking || '');
   const [ticketId, setTicketId] = useState(preselectedTicket || '');
+  const [showFaceScanner, setShowFaceScanner] = useState(false);
+  const [assignedName, setAssignedName] = useState('');
   const [state, action] = useFormState(createInvoice, {});
 
   const subtotal = useMemo(
@@ -222,21 +225,43 @@ export default function InvoiceBuilder({
         */}
         <label className="field">
           <span>Who did the work?</span>
-          <input
-            className="input"
-            name="performed_by_name"
-            list="dn-mechanics"
-            key={`by-${ticketId}`}
-            defaultValue={ticket?.assigned_name ?? ''}
-            placeholder="Name of the mechanic"
-            autoComplete="off"
-          />
+          <div className="grid" style={{ gridTemplateColumns: '1fr auto', gap: '0.5rem' }}>
+            <input
+              className="input"
+              name="performed_by_name"
+              list="dn-mechanics"
+              key={`by-${ticketId}`}
+              value={assignedName || ticket?.assigned_name || ''}
+              onChange={(e) => setAssignedName(e.target.value)}
+              placeholder="Name of the mechanic"
+              autoComplete="off"
+            />
+            <button 
+              type="button" 
+              className="btn btn--ghost" 
+              onClick={() => setShowFaceScanner(true)}
+              style={{ color: 'var(--brand)' }}
+            >
+              <Icon name="scan" size={20} />
+            </button>
+          </div>
           <datalist id="dn-mechanics">
             {mechanics.map((m) => (
               <option key={m.id} value={m.full_name} />
             ))}
           </datalist>
         </label>
+
+        {showFaceScanner && (
+          <FaceScanner 
+            mechanics={mechanics} 
+            onIdentified={(name) => {
+              setAssignedName(name);
+              setShowFaceScanner(false);
+            }} 
+            onClose={() => setShowFaceScanner(false)} 
+          />
+        )}
 
         <h3 style={{ marginTop: '1.5rem' }}>What are we charging for?</h3>
         <p className="small muted" style={{ marginTop: '-0.5rem' }}>

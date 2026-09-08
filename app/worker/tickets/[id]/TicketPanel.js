@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import Icon from '@/components/Icon';
+import FaceScanner from '@/components/FaceScanner';
 import { moveTicket, updateTicket } from '../actions';
 import { NEXT_STATUS, TICKET_STATUS } from '@/lib/tickets';
 import { enqueue } from '@/lib/offline/queue';
@@ -92,6 +93,8 @@ function Save() {
 
 export function TicketDetails({ ticket, bays, mechanics }) {
   const [state, action] = useFormState(updateTicket, {});
+  const [showFaceScanner, setShowFaceScanner] = useState(false);
+  const [assignedName, setAssignedName] = useState('');
 
   // datetime-local wants the local wall clock, not an ISO string in UTC.
   const promised = ticket.promised_ready_at
@@ -122,19 +125,41 @@ export function TicketDetails({ ticket, bays, mechanics }) {
 
       <label className="field">
         <span>Mechanic</span>
-        <input
-          className="input"
-          name="assigned_name"
-          list="dn-detail-mechanics"
-          defaultValue={ticket.assigned_name ?? ''}
-          autoComplete="off"
-        />
+        <div className="grid" style={{ gridTemplateColumns: '1fr auto', gap: '0.5rem' }}>
+          <input
+            className="input"
+            name="assigned_name"
+            list="dn-detail-mechanics"
+            value={assignedName || ticket.assigned_name || ''}
+            onChange={(e) => setAssignedName(e.target.value)}
+            autoComplete="off"
+          />
+          <button 
+            type="button" 
+            className="btn btn--ghost" 
+            onClick={() => setShowFaceScanner(true)}
+            style={{ color: 'var(--brand)' }}
+          >
+            <Icon name="scan" size={20} />
+          </button>
+        </div>
         <datalist id="dn-detail-mechanics">
           {mechanics.map((m) => (
             <option key={m.id} value={m.full_name} />
           ))}
         </datalist>
       </label>
+
+      {showFaceScanner && (
+        <FaceScanner 
+          mechanics={mechanics} 
+          onIdentified={(name) => {
+            setAssignedName(name);
+            setShowFaceScanner(false);
+          }} 
+          onClose={() => setShowFaceScanner(false)} 
+        />
+      )}
 
       <label className="field">
         <span>Keys</span>
