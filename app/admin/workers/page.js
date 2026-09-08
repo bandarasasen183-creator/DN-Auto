@@ -1,5 +1,6 @@
 import PortalShell from '@/components/PortalShell';
 import PeopleTable from '@/components/PeopleTable';
+import AddStaffForm from '@/components/AddStaffForm';
 import { requireRole } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import { ADMIN_NAV } from '../nav';
@@ -30,6 +31,8 @@ export default async function AdminWorkers() {
       title="Workers & admins"
       subtitle="Staff accounts. Change a role here and their portal changes on their next page load."
     >
+      <AddStaffForm />
+
       <div className="rise">
         <PeopleTable people={staff ?? []} emptyMessage="No staff accounts yet." />
       </div>

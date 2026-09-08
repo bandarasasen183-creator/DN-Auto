@@ -347,3 +347,39 @@ export async function togglePromotion(formData) {
   revalidatePath('/admin/promotions');
   revalidatePath('/');
 }
+
+/** Create a worker profile without an auth account */
+export async function addStaffWithoutAccount(_prevState, formData) {
+  await requireRole('admin');
+  const supabase = createClient();
+  
+  const fullName = String(formData.get('full_name') ?? '').trim();
+  if (!fullName) return { error: 'Please enter a name.' };
+  
+  const id = crypto.randomUUID();
+  
+  const { error } = await supabase.from('profiles').insert({
+    id,
+    full_name: fullName,
+    role: 'worker',
+    is_active: true
+  });
+  
+  if (error) {
+    // If FK constraint to auth.users fails, it means we MUST have an auth account.
+    if (error.code === '23503') {
+      return { error: 'Database constraint: Cannot create a profile without a real login account.' };
+    }
+    return { error: error.message };
+  }
+  
+  // also add worker record so they show up in tables properly
+  await supabase.from('workers').insert({
+    id,
+    employee_code: fullName.substring(0, 3).toUpperCase(),
+    hourly_rate_cents: 0
+  });
+  
+  revalidatePath('/admin/workers');
+  return { success: true };
+}
