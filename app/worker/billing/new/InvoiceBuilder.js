@@ -245,18 +245,30 @@ export default function InvoiceBuilder({
         </p>
 
         {items.map((item, i) => (
-          <div key={i} className="billline">
-            <label className="field">
-              <span>Quick add</span>
-              <select className="select" value="" onChange={(e) => applyService(i, e.target.value)}>
-                <option value="">Custom line — type it below</option>
-                {services.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-            </label>
+          <div key={i} className="stack" style={{ '--gap': '0.75rem', padding: '1rem', backgroundColor: 'var(--surface-sunken)', borderRadius: '12px', marginBottom: '1rem' }}>
+            <div className="grid" style={{ gridTemplateColumns: '1fr auto', alignItems: 'end', gap: '1rem' }}>
+              <label className="field" style={{ margin: 0 }}>
+                <span>Quick add from catalogue</span>
+                <select className="select" value="" onChange={(e) => applyService(i, e.target.value)}>
+                  <option value="">Custom line — type it below</option>
+                  {services.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="button"
+                className="btn btn--ghost small"
+                style={{ color: 'var(--red-600)' }}
+                onClick={() => setItems((rows) => rows.filter((_, x) => x !== i))}
+                disabled={items.length === 1}
+                aria-label={`Remove line ${i + 1}`}
+              >
+                <Icon name="close" size={14} /> Remove
+              </button>
+            </div>
 
-            <label className="field">
+            <label className="field" style={{ margin: 0 }}>
               <span>Description</span>
               <input
                 className="input"
@@ -267,70 +279,61 @@ export default function InvoiceBuilder({
               />
             </label>
 
-            <label className="field">
-              <span>Type</span>
-              <select
-                className="select"
-                name="item_kind"
-                value={item.kind}
-                onChange={(e) => updateKind(i, e.target.value)}
-              >
-                <option value="labour">Labour</option>
-                <option value="part">Part</option>
-              </select>
-            </label>
+            <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem' }}>
+              <label className="field" style={{ margin: 0 }}>
+                <span>Type</span>
+                <select
+                  className="select"
+                  name="item_kind"
+                  value={item.kind}
+                  onChange={(e) => updateKind(i, e.target.value)}
+                >
+                  <option value="labour">Labour</option>
+                  <option value="part">Part</option>
+                </select>
+              </label>
 
-            <label className="field">
-              <span>Warranty (months)</span>
-              <input
-                className="input"
-                name="item_warranty_months"
-                type="number"
-                min="0"
-                step="1"
-                value={item.warranty}
-                onChange={(e) => update(i, 'warranty', e.target.value)}
-                placeholder={String(DEFAULT_WARRANTY[item.kind])}
-                title="0 means no cover on this line. Parts default to 6 months."
-              />
-            </label>
+              <label className="field" style={{ margin: 0 }}>
+                <span>Warranty (months)</span>
+                <input
+                  className="input"
+                  name="item_warranty_months"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={item.warranty}
+                  onChange={(e) => update(i, 'warranty', e.target.value)}
+                  placeholder={String(DEFAULT_WARRANTY[item.kind])}
+                  title="0 means no cover on this line. Parts default to 6 months."
+                />
+              </label>
 
-            <label className="field">
-              <span>Qty</span>
-              <input
-                className="input"
-                name="item_quantity"
-                type="number"
-                min="1"
-                step="1"
-                value={item.quantity}
-                onChange={(e) => update(i, 'quantity', e.target.value)}
-              />
-            </label>
+              <label className="field" style={{ margin: 0 }}>
+                <span>Qty</span>
+                <input
+                  className="input"
+                  name="item_quantity"
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={item.quantity}
+                  onChange={(e) => update(i, 'quantity', e.target.value)}
+                />
+              </label>
 
-            <label className="field">
-              <span>Unit price (LKR)</span>
-              <input
-                className="input"
-                name="item_price"
-                type="number"
-                min="0"
-                step="0.01"
-                value={item.price}
-                onChange={(e) => update(i, 'price', e.target.value)}
-              />
-            </label>
-
-            <button
-              type="button"
-              className="btn btn--ghost small"
-              style={{ marginBottom: '1rem' }}
-              onClick={() => setItems((rows) => rows.filter((_, x) => x !== i))}
-              disabled={items.length === 1}
-              aria-label={`Remove line ${i + 1}`}
-            >
-              <Icon name="close" size={14} />
-            </button>
+              <label className="field" style={{ margin: 0 }}>
+                <span>Unit price (LKR)</span>
+                <input
+                  className="input"
+                  name="item_price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={item.price}
+                  onChange={(e) => update(i, 'price', e.target.value)}
+                />
+              </label>
+            </div>
           </div>
         ))}
 
