@@ -62,14 +62,6 @@ export default async function BillingPage({ searchParams }) {
           <span className="stat__label">Bills today</span>
           <span className="stat__value">{todays.length}</span>
         </div>
-        <div className="stat">
-          <span className="stat__label">Taken today</span>
-          <span className="stat__value">{formatLKR(takenToday)}</span>
-        </div>
-        <div className="stat">
-          <span className="stat__label">Still outstanding</span>
-          <span className="stat__value">{formatLKR(outstanding)}</span>
-        </div>
       </section>
 
       <div className="tabs rise">

@@ -38,6 +38,11 @@ export default async function WorkerHome() {
       current="/worker"
       title="Dashboard"
       subtitle="Overview of the workshop and incoming jobs."
+      actions={
+        <Link href="/worker/tickets/new" className="btn">
+          <Icon name="plus" size={16} /> New ticket
+        </Link>
+      }
     >
       <section className="grid rise rise-1" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
         <div className="card">
