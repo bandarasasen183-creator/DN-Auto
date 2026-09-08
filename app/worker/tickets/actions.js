@@ -190,3 +190,25 @@ export async function updateTicket(_prevState, formData) {
   revalidatePath(`/worker/tickets/${ticketId}`);
   return { success: true };
 }
+
+export async function lookupCarsByPhone(phone) {
+  const supabase = createClient();
+  const key = phone.replace(/[^0-9]/g, '');
+  if (!key) return [];
+  
+  const { data: contact } = await supabase
+    .from('contacts')
+    .select('id')
+    .eq('phone_key', key)
+    .maybeSingle();
+    
+  if (!contact) return [];
+  
+  const { data: cars } = await supabase
+    .from('vehicle_records')
+    .select('registration, make, model')
+    .eq('contact_id', contact.id)
+    .order('last_seen_at', { ascending: false });
+    
+  return cars || [];
+}

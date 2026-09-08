@@ -5,7 +5,7 @@ import Icon from '@/components/Icon';
 import { requireRole } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import { WORKER_NAV } from '../../nav';
-import { TICKET_STATUS, elapsed, promiseState } from '@/lib/tickets';
+import { TICKET_STATUS, elapsed, promiseState, duration } from '@/lib/tickets';
 import { fetchServiceHistory, isWarrantyLive } from '@/lib/service-history';
 import { formatLKR } from '@/lib/business';
 import { StatusActions, TicketDetails } from './TicketPanel';
@@ -123,25 +123,49 @@ export default async function TicketPage({ params }) {
           </section>
 
           <section className="card rise rise-1">
-            <h3 style={{ marginTop: 0 }}>Today</h3>
+            <h3 style={{ marginTop: 0 }}>Timeline</h3>
             <ol className="timeline">
               <li>
                 <strong>Arrived</strong>
                 <span className="small muted">
                   {stamp(ticket.opened_at)}
-                  {ticket.opener?.full_name ? ` · booked in by ${ticket.opener.full_name}` : ''}
+                  {ticket.opener?.full_name ? ` · ${ticket.opener.full_name}` : ''}
                 </span>
               </li>
               {ticket.started_at && (
-                <li><strong>Work started</strong><span className="small muted">{stamp(ticket.started_at)}</span></li>
+                <li>
+                  <strong>Work started</strong>
+                  <span className="small muted">
+                    {stamp(ticket.started_at)}
+                    <br/>
+                    <span className="form-note">Waited: {duration(ticket.opened_at, ticket.started_at)}</span>
+                  </span>
+                </li>
               )}
               {ticket.ready_at && (
-                <li><strong>Ready</strong><span className="small muted">{stamp(ticket.ready_at)}</span></li>
+                <li>
+                  <strong>Ready</strong>
+                  <span className="small muted">
+                    {stamp(ticket.ready_at)}
+                    <br/>
+                    <span className="form-note">In progress: {duration(ticket.started_at || ticket.opened_at, ticket.ready_at)}</span>
+                  </span>
+                </li>
               )}
               {ticket.collected_at && (
-                <li><strong>Collected</strong><span className="small muted">{stamp(ticket.collected_at)}</span></li>
+                <li>
+                  <strong>Collected</strong>
+                  <span className="small muted">
+                    {stamp(ticket.collected_at)}
+                    <br/>
+                    <span className="form-note">Sat ready: {duration(ticket.ready_at || ticket.started_at || ticket.opened_at, ticket.collected_at)}</span>
+                  </span>
+                </li>
               )}
             </ol>
+            <p className="small muted" style={{ marginTop: '1rem', borderTop: '1px solid var(--surface-sunken)', paddingTop: '0.5rem' }}>
+              <strong>Total time here:</strong> {duration(ticket.opened_at, ticket.collected_at || new Date())}
+            </p>
           </section>
 
           {previous.length > 0 && (
