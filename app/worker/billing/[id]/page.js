@@ -253,21 +253,7 @@ export default async function InvoicePage({ params, searchParams }) {
 
         <aside className="stack rise rise-2" style={{ '--gap': '1.5rem' }}>
           {outstanding > 0 ? (
-            <>
-              {/* The normal route: hand the tablet over, they pick how they
-                  paid and sign for it. The panel below stays for the times
-                  somebody needs to record a part-payment by hand. */}
-              <section className="card center">
-                <h3 style={{ marginTop: 0 }}>{formatLKR(outstanding)} to pay</h3>
-                <Link href={`/worker/billing/${invoice.id}/confirm`} className="btn btn--lg">
-                  Take payment <Icon name="arrowRight" size={16} />
-                </Link>
-                <p className="small muted" style={{ marginBottom: 0 }}>
-                  Opens the customer&apos;s screen — method, then signature.
-                </p>
-              </section>
-              <PaymentPanel invoiceId={invoice.id} outstandingCents={outstanding} />
-            </>
+            <PaymentPanel invoiceId={invoice.id} outstandingCents={outstanding} />
           ) : (
             <section className="card center">
               <div className="tick" aria-hidden><Icon name="check" size={28} /></div>
@@ -282,7 +268,7 @@ export default async function InvoicePage({ params, searchParams }) {
           {invoice.booking_id && (
             <section className="card">
               <h3>Linked job</h3>
-              <Link href={`/worker/jobs/${invoice.booking_id}`} className="btn btn--ghost small">
+              <Link href={`/worker/incoming/${invoice.booking_id}`} className="btn btn--ghost small">
                 Open the job <Icon name="arrowRight" size={14} />
               </Link>
             </section>

@@ -1,102 +1,125 @@
+import Link from 'next/link';
 import PortalShell from '@/components/PortalShell';
 import { requireRole } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
-import { STATUS_LABELS, formatLKR } from '@/lib/business';
-
+import { STATUS_LABELS } from '@/lib/business';
+import { TICKET_STATUS, OPEN_STATUSES, promiseState } from '@/lib/tickets';
 import { WORKER_NAV } from './nav';
+import Icon from '@/components/Icon';
 
-export const metadata = { title: 'Workshop' };
-
+export const metadata = { title: 'Dashboard' };
+export const dynamic = 'force-dynamic';
 
 export default async function WorkerHome() {
-  const { profile } = await requireRole('worker', { from: '/worker' });
+  const { profile } = await requireRole(['worker', 'admin'], { from: '/worker' });
   const supabase = createClient();
 
-  const [{ data: mine }, { data: incoming }, { data: payslip }] = await Promise.all([
+  const [{ data: incoming }, { data: tickets }] = await Promise.all([
     supabase
       .from('bookings')
-      .select('id, reference, status, scheduled_for, services(name), profiles!bookings_customer_id_fkey(full_name)')
-      .eq('assigned_worker_id', profile.id)
-      .not('status', 'in', '("completed","cancelled","no_show")')
-      .order('scheduled_for', { ascending: true }),
-    supabase
-      .from('bookings')
-      .select('id, reference, scheduled_for, services(name)')
-      .is('assigned_worker_id', null)
+      .select('id, reference, scheduled_for, services(name), vehicles(registration)')
       .in('status', ['confirmed', 'requested'])
       .order('scheduled_for', { ascending: true })
-      .limit(5),
+      .limit(8),
     supabase
-      .from('payslips')
-      .select('net_pay_cents, jobs_completed, pay_periods(starts_on, ends_on)')
-      .eq('worker_id', profile.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+      .from('tickets')
+      .select('id, number, status, registration, complaint, promised_ready_at, assigned_name')
+      .in('status', OPEN_STATUSES)
+      .order('opened_at')
   ]);
+
+  const activeTickets = tickets ?? [];
+  const late = activeTickets.filter((t) => promiseState(t) === 'late').length;
 
   return (
     <PortalShell
       profile={profile}
       nav={WORKER_NAV}
       current="/worker"
-      title={`Good day, ${profile.full_name.split(' ')[0]}`}
-      subtitle="Your assigned jobs, what's waiting to be claimed, and your latest pay."
+      title="Dashboard"
+      subtitle="Overview of the workshop and incoming jobs."
     >
-      <section className="grid rise rise-1" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
-        <div className="card card--hover">
-          <p className="small muted" style={{ margin: 0 }}>Open jobs</p>
+      <section className="grid rise rise-1" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+        <div className="card">
+          <p className="small muted" style={{ margin: 0 }}>Cars in workshop</p>
           <p style={{ fontSize: '2.4rem', fontFamily: 'var(--font-display)', margin: 0 }}>
-            {(mine ?? []).length}
+            {activeTickets.length}
           </p>
+          {late > 0 && (
+            <p className="small form-error" style={{ margin: 0 }}>
+              {late} past promised time
+            </p>
+          )}
         </div>
-        <div className="card card--hover">
-          <p className="small muted" style={{ margin: 0 }}>Waiting to be claimed</p>
+        <div className="card">
+          <p className="small muted" style={{ margin: 0 }}>Incoming bookings</p>
           <p style={{ fontSize: '2.4rem', fontFamily: 'var(--font-display)', margin: 0 }}>
             {(incoming ?? []).length}
           </p>
         </div>
-        <div className="card card--hover">
-          <p className="small muted" style={{ margin: 0 }}>Latest payslip</p>
-          <p style={{ fontSize: '2.4rem', fontFamily: 'var(--font-display)', margin: 0 }}>
-            {payslip ? formatLKR(payslip.net_pay_cents) : '—'}
-          </p>
-          {payslip?.pay_periods && (
-            <p className="small muted" style={{ margin: 0 }}>
-              {payslip.pay_periods.starts_on} → {payslip.pay_periods.ends_on}
-            </p>
-          )}
-        </div>
       </section>
 
-      <section className="rise rise-2" style={{ marginTop: '2.5rem' }}>
-        <h3>Your jobs</h3>
-        {(mine ?? []).length === 0 ? (
-          <div className="card center muted">Nothing assigned to you right now.</div>
-        ) : (
-          <div className="grid" style={{ gap: '0.75rem' }}>
-            {mine.map((job) => (
-              <article key={job.id} className="card card--hover row" style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                <div>
-                  <strong>{job.services?.name ?? 'Service'}</strong>
-                  <p className="small muted" style={{ margin: 0 }}>
-                    {job.reference} · {job.profiles?.full_name}
-                  </p>
-                </div>
-                <div className="row">
+      <div className="grid rise rise-2" style={{ gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', marginTop: '2.5rem', gap: '1.5rem', alignItems: 'start' }}>
+        <section className="card">
+          <h3>In the workshop</h3>
+          {activeTickets.length === 0 ? (
+            <p className="muted small">Nothing in at the moment.</p>
+          ) : (
+            <div className="stack" style={{ '--gap': '0.75rem' }}>
+              {activeTickets.map((t) => {
+                const isLate = promiseState(t) === 'late';
+                return (
+                  <Link key={t.id} href={`/worker/tickets/${t.id}`} className="row" style={{ justifyContent: 'space-between', padding: '0.5rem', background: 'var(--surface-sunken)', borderRadius: '6px' }}>
+                    <div>
+                      <strong style={{ color: isLate ? 'var(--red)' : 'inherit' }}>{t.registration}</strong>
+                      <p className="small muted" style={{ margin: 0 }}>
+                        {t.complaint.length > 35 ? t.complaint.slice(0, 35) + '…' : t.complaint}
+                      </p>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <span className="pill pill--info">{TICKET_STATUS[t.status].label}</span>
+                      {t.assigned_name && <p className="small muted" style={{ margin: '4px 0 0 0' }}>{t.assigned_name}</p>}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+          <div style={{ marginTop: '1rem' }}>
+            <Link href="/worker/tickets" className="btn btn--ghost small">View board &rarr;</Link>
+          </div>
+        </section>
+
+        <section className="card">
+          <h3>Incoming jobs</h3>
+          {(incoming ?? []).length === 0 ? (
+            <p className="muted small">No upcoming bookings.</p>
+          ) : (
+            <div className="stack" style={{ '--gap': '0.75rem' }}>
+              {incoming.map((job) => (
+                <Link key={job.id} href={`/worker/incoming/${job.id}`} className="row" style={{ justifyContent: 'space-between', padding: '0.5rem', background: 'var(--surface-sunken)', borderRadius: '6px' }}>
+                  <div>
+                    <strong>{job.services?.name ?? 'Service'}</strong>
+                    <p className="small muted" style={{ margin: 0 }}>
+                      {job.vehicles?.registration ?? job.reference}
+                    </p>
+                  </div>
                   <span className="small muted">
                     {new Date(job.scheduled_for).toLocaleString('en-LK', {
-                      dateStyle: 'medium',
-                      timeStyle: 'short',
+                      weekday: 'short',
+                      hour: 'numeric',
+                      minute: '2-digit'
                     })}
                   </span>
-                  <span className="pill pill--info">{STATUS_LABELS[job.status]}</span>
-                </div>
-              </article>
-            ))}
+                </Link>
+              ))}
+            </div>
+          )}
+          <div style={{ marginTop: '1rem' }}>
+            <Link href="/worker/incoming" className="btn btn--ghost small">Manage incoming &rarr;</Link>
           </div>
-        )}
-      </section>
+        </section>
+      </div>
     </PortalShell>
   );
 }

@@ -103,8 +103,6 @@ export async function createInvoice(_prevState, formData) {
   let registration = formatPlate(formData.get('registration')) || null;
 
   // A ticket already has everything typed from when the car arrived.
-  // Taking it from there rather than from the counter is what keeps the
-  // bill, the ticket and the vehicle record talking about the same visit.
   const ticketId = String(formData.get('ticket_id') ?? '') || null;
   let contactId = null;
 
@@ -136,9 +134,43 @@ export async function createInvoice(_prevState, formData) {
       customerName ??= booking.profiles?.full_name ?? null;
       customerPhone ??= booking.profiles?.phone ?? null;
       customerEmail ??= booking.profiles?.email ?? null;
-      // The plate on the job wins only if nobody typed one at the counter —
-      // a car can arrive on different plates to the one we have on file.
       registration ??= formatPlate(booking.vehicles?.registration) || null;
+    }
+  }
+
+  // Walk-in contact logic: Match or create a contact if no account exists
+  if (!customerId && customerPhone) {
+    const phoneKey = customerPhone.replace(/[^0-9]/g, '');
+    if (phoneKey) {
+      const marketingOptIn = formData.get('marketing_opt_in') === 'yes';
+      const serviceOptIn = formData.get('service_updates_opt_in') === 'yes';
+
+      const { data: existing } = await supabase
+        .from('contacts')
+        .select('id')
+        .eq('phone_key', phoneKey)
+        .maybeSingle();
+
+      if (existing) {
+        contactId = existing.id;
+        // Optionally update their opt-ins if they ticked them today
+        if (marketingOptIn || serviceOptIn) {
+          await supabase.from('contacts').update({
+            ...(marketingOptIn ? { marketing_opt_in: true, marketing_opt_in_at: new Date().toISOString(), opt_in_source: 'Counter Walk-in' } : {}),
+            service_updates_opt_in: serviceOptIn,
+          }).eq('id', contactId);
+        }
+      } else {
+        const { data: created } = await supabase.from('contacts').insert({
+          full_name: customerName,
+          phone: customerPhone,
+          marketing_opt_in: marketingOptIn,
+          marketing_opt_in_at: marketingOptIn ? new Date().toISOString() : null,
+          opt_in_source: marketingOptIn ? 'Counter Walk-in' : null,
+          service_updates_opt_in: serviceOptIn,
+        }).select('id').single();
+        if (created) contactId = created.id;
+      }
     }
   }
 
@@ -635,7 +667,6 @@ export async function createTeamPromotion(_prevState, formData) {
     };
   }
 
-  revalidatePath('/worker/billing/codes');
   revalidatePath('/admin/promotions');
   return { success: true };
 }

@@ -154,11 +154,20 @@ export default function InvoiceBuilder({
             </label>
             <label className="field">
               <span>Phone</span>
-              <input className="input" name="customer_phone" type="tel" />
+              <input className="input" name="customer_phone" type="tel" placeholder="+94 7X XXX XXXX" required />
             </label>
-            <label className="field">
-              <span>Email (optional)</span>
-              <input className="input" name="customer_email" type="email" placeholder="For the service history" />
+          </div>
+        )}
+
+        {!known && (
+          <div className="stack" style={{ '--gap': '0.5rem', marginTop: '1rem', marginBottom: '1.5rem' }}>
+            <label className="checkbox">
+              <input type="checkbox" name="service_updates_opt_in" defaultChecked value="yes" />
+              <span>Send me warranty and service reminders about my vehicle</span>
+            </label>
+            <label className="checkbox">
+              <input type="checkbox" name="marketing_opt_in" value="yes" />
+              <span>Send me occasional offers from DN Auto</span>
             </label>
           </div>
         )}

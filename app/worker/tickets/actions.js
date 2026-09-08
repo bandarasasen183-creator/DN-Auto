@@ -16,7 +16,7 @@ const TEAM = ['worker', 'admin'];
  * recognised whether they wrote 0771234567 or +94 77 123 4567. We ask for
  * a number and nothing else — an email is offered, never required.
  */
-async function upsertContact(supabase, { name, phone, email }) {
+async function upsertContact(supabase, { name, phone, email, marketingOptIn, serviceOptIn }) {
   if (!phone) return null;
   const key = phone.replace(/[^0-9]/g, '');
   if (!key) return null;
@@ -34,6 +34,14 @@ async function upsertContact(supabase, { name, phone, email }) {
     const patch = {};
     if (name && !existing.full_name) patch.full_name = name;
     if (email && !existing.email) patch.email = email;
+    if (marketingOptIn || serviceOptIn) {
+      if (marketingOptIn) {
+        patch.marketing_opt_in = true;
+        patch.marketing_opt_in_at = new Date().toISOString();
+        patch.opt_in_source = 'walk-in ticket';
+      }
+      if (serviceOptIn) patch.service_updates_opt_in = true;
+    }
 
     if (Object.keys(patch).length > 0) {
       patch.updated_at = new Date().toISOString();
@@ -48,7 +56,10 @@ async function upsertContact(supabase, { name, phone, email }) {
       full_name: name || null,
       phone,
       email: email || null,
-      opt_in_source: 'walk-in ticket',
+      marketing_opt_in: marketingOptIn,
+      marketing_opt_in_at: marketingOptIn ? new Date().toISOString() : null,
+      opt_in_source: marketingOptIn ? 'walk-in ticket' : null,
+      service_updates_opt_in: serviceOptIn,
     })
     .select('id')
     .single();
@@ -74,6 +85,8 @@ export async function openTicket(_prevState, formData) {
     name,
     phone,
     email: String(formData.get('customer_email') ?? '').trim(),
+    marketingOptIn: formData.get('marketing_opt_in') === 'yes',
+    serviceOptIn: formData.get('service_updates_opt_in') === 'yes',
   });
 
   // A promise is only recorded if somebody made one.

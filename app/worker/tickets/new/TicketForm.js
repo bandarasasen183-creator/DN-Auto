@@ -168,14 +168,24 @@ export default function TicketForm({ bays, mechanics, bookings, preselectedBooki
           </label>
           <label className="field">
             <span>Phone</span>
-            <input className="input" name="customer_phone" type="tel" key={`ph-${bookingId}`} defaultValue={booking?.profiles?.phone ?? ''} placeholder="077 123 4567" />
-          </label>
-          <label className="field">
-            <span>Email (optional)</span>
-            <input className="input" name="customer_email" type="email" />
+            <input className="input" name="customer_phone" type="tel" key={`ph-${bookingId}`} defaultValue={booking?.profiles?.phone ?? ''} placeholder="+94 7X XXX XXXX" />
           </label>
         </div>
-        <p className="small muted" style={{ marginTop: '-0.5rem' }}>
+
+        {!booking && (
+          <div className="stack" style={{ '--gap': '0.5rem', marginTop: '0.5rem' }}>
+            <label className="checkbox">
+              <input type="checkbox" name="service_updates_opt_in" defaultChecked value="yes" />
+              <span>Send me warranty and service reminders about my vehicle</span>
+            </label>
+            <label className="checkbox">
+              <input type="checkbox" name="marketing_opt_in" value="yes" />
+              <span>Send me occasional offers from DN Auto</span>
+            </label>
+          </div>
+        )}
+
+        <p className="small muted">
           A phone number is all we need — it&apos;s how we tell them the car is
           ready. Anything else is theirs to offer.
         </p>

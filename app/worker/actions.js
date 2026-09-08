@@ -50,7 +50,7 @@ export async function acceptJob(_prevState, formData) {
 
   revalidatePath('/worker');
   revalidatePath('/worker/incoming');
-  revalidatePath('/worker/jobs');
+  revalidatePath('/worker/tickets');
   return { success: true };
 }
 
@@ -89,7 +89,7 @@ export async function updateJobStatus(_prevState, formData) {
   }
 
   revalidatePath('/worker');
-  revalidatePath('/worker/jobs');
-  revalidatePath(`/worker/jobs/${id}`);
+  revalidatePath('/worker/tickets');
+  revalidatePath(`/worker/tickets/${id}`);
   return { success: true };
 }
