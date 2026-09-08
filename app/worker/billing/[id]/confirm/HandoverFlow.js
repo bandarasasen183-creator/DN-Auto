@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFormState, useFormStatus } from 'react-dom';
 import Icon from '@/components/Icon';
@@ -8,6 +8,8 @@ import KeepAwake from '@/components/KeepAwake';
 import { formatLKR } from '@/lib/business';
 import { completeHandover, releaseHandover } from '../../actions';
 import { enqueue, newId } from '@/lib/offline/queue';
+import AnimatedTick from '@/components/AnimatedTick';
+import CustomerFeedback from '@/components/CustomerFeedback';
 
 const METHODS = [
   { value: 'webxpay', label: 'Card', icon: 'receipt', hint: 'Taken on the machine' },
@@ -169,6 +171,7 @@ export default function HandoverFlow({ invoice, outstandingCents }) {
   const [queued, setQueued] = useState(false);
   const [state, action] = useFormState(completeHandover, {});
   const [releaseState, releaseAction] = useFormState(releaseHandover, {});
+  const [phase, setPhase] = useState('form');
 
   // This app never touches the card machine — WEBXPAY has no API — so
   // "complete" only records that a payment happened and the customer
@@ -185,6 +188,16 @@ export default function HandoverFlow({ invoice, outstandingCents }) {
       window.removeEventListener('offline', off);
     };
   }, []);
+
+  useEffect(() => {
+    if (state?.success || queued) {
+      if (phase === 'form') {
+        setPhase('tick');
+        const t = setTimeout(() => setPhase('review'), 2500);
+        return () => clearTimeout(t);
+      }
+    }
+  }, [state?.success, queued, phase]);
 
   async function submit(formData) {
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
@@ -207,37 +220,44 @@ export default function HandoverFlow({ invoice, outstandingCents }) {
     await action(formData);
   }
 
-  // Once saved — or queued to be — the customer is looking at this.
-  // Nothing else is on screen. Whether it went straight to the server or
-  // is waiting on this tablet, the promise to the customer is the same:
-  // it is recorded and it will not be asked for twice.
-  if (state?.success || queued) {
+  if (phase === 'tick') {
+    return (
+      <div className="handover handover--done">
+        <KeepAwake />
+        <AnimatedTick />
+        <h1>Thank you</h1>
+        <p className="muted">Your payment has been recorded.</p>
+      </div>
+    );
+  }
+
+  if (phase === 'review') {
+    return (
+      <div className="handover handover--done" style={{ minHeight: '50vh', justifyContent: 'center' }}>
+        <KeepAwake />
+        <CustomerFeedback onFinish={(rating, reason) => {
+          // If we want to submit the review to the server, we would do it here.
+          // Since walk-ins might not have bookings, we just skip the server insert 
+          // to avoid constraint errors, and move to release phase.
+          setPhase('release');
+        }} />
+      </div>
+    );
+  }
+
+  if (phase === 'release') {
     return (
       <div className="handover handover--done">
         <KeepAwake />
         <div className="tick tick--xl" aria-hidden>
           <Icon name="check" size={64} />
         </div>
-        <h1>Thank you</h1>
+        <h1>All done</h1>
         <p className="muted">
-          {queued
-            ? 'Your payment has been recorded on this tablet.'
-            : 'Your payment has been recorded.'}
+          Please hand the tablet back to the team.
         </p>
-        {queued && (
-          <p className="small muted">
-            There&apos;s no connection right now — it will reach the office the
-            moment the Wi-Fi is back.
-          </p>
-        )}
-
         <form
           action={async (formData) => {
-            // The tablet has to come back from the customer either way —
-            // that cannot wait on a connection. Online, the server action
-            // records who closed it off and redirects. Offline, the same
-            // is queued and the tablet leaves this screen immediately;
-            // whoever synced it later is on the record just the same.
             if (typeof navigator !== 'undefined' && !navigator.onLine) {
               await enqueue({
                 id: newId(),
