@@ -3,6 +3,8 @@ import AuthShell from '../AuthShell';
 import SignupForm from './SignupForm';
 
 export const metadata = { title: 'Create an account' };
+export const dynamic = 'force-dynamic';
+
 
 export default function SignupPage() {
   return (
