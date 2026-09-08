@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useFormState, useFormStatus } from 'react-dom';
 import Icon from '@/components/Icon';
 import KeepAwake from '@/components/KeepAwake';
 import { formatLKR } from '@/lib/business';
 import { completeHandover, releaseHandover } from '../../actions';
+import { enqueue, newId } from '@/lib/offline/queue';
 
 const METHODS = [
   { value: 'webxpay', label: 'Card', icon: 'receipt', hint: 'Taken on the machine' },
@@ -160,16 +162,18 @@ function ReleaseButton() {
 }
 
 export default function HandoverFlow({ invoice, outstandingCents }) {
+  const router = useRouter();
   const [method, setMethod] = useState('webxpay');
   const [signature, setSignature] = useState('');
   const [online, setOnline] = useState(true);
+  const [queued, setQueued] = useState(false);
   const [state, action] = useFormState(completeHandover, {});
   const [releaseState, releaseAction] = useFormState(releaseHandover, {});
 
-  // Money never goes in the offline queue. A payment replayed on a flaky
-  // connection charges somebody twice, and no amount of clever retry
-  // logic is worth that risk — so this screen says plainly that it needs
-  // a connection rather than pretending to work and failing later.
+  // This app never touches the card machine — WEBXPAY has no API — so
+  // "complete" only records that a payment happened and the customer
+  // signed for it. That's what makes it safe to queue offline: the risk
+  // of a retry is a duplicate row in the ledger, not a duplicate charge.
   useEffect(() => {
     setOnline(navigator.onLine);
     const on = () => setOnline(true);
@@ -182,8 +186,32 @@ export default function HandoverFlow({ invoice, outstandingCents }) {
     };
   }, []);
 
-  // Once saved, the customer is looking at this. Nothing else is on screen.
-  if (state?.success) {
+  async function submit(formData) {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      await enqueue({
+        id: newId(),
+        kind: 'handover.complete',
+        payload: {
+          invoice_id: invoice.id,
+          method: String(formData.get('method') ?? 'cash'),
+          amount_cents: Math.round(Number(formData.get('amount_lkr') ?? 0) * 100),
+          signature: String(formData.get('signature') ?? ''),
+          signed_name: String(formData.get('signed_name') ?? '').trim() || null,
+          reference: String(formData.get('provider_reference') ?? '').trim() || null,
+        },
+      });
+      setQueued(true);
+      return;
+    }
+
+    await action(formData);
+  }
+
+  // Once saved — or queued to be — the customer is looking at this.
+  // Nothing else is on screen. Whether it went straight to the server or
+  // is waiting on this tablet, the promise to the customer is the same:
+  // it is recorded and it will not be asked for twice.
+  if (state?.success || queued) {
     return (
       <div className="handover handover--done">
         <KeepAwake />
@@ -191,9 +219,38 @@ export default function HandoverFlow({ invoice, outstandingCents }) {
           <Icon name="check" size={64} />
         </div>
         <h1>Thank you</h1>
-        <p className="muted">Your payment has been recorded.</p>
+        <p className="muted">
+          {queued
+            ? 'Your payment has been recorded on this tablet.'
+            : 'Your payment has been recorded.'}
+        </p>
+        {queued && (
+          <p className="small muted">
+            There&apos;s no connection right now — it will reach the office the
+            moment the Wi-Fi is back.
+          </p>
+        )}
 
-        <form action={releaseAction} className="handover__release">
+        <form
+          action={async (formData) => {
+            // The tablet has to come back from the customer either way —
+            // that cannot wait on a connection. Online, the server action
+            // records who closed it off and redirects. Offline, the same
+            // is queued and the tablet leaves this screen immediately;
+            // whoever synced it later is on the record just the same.
+            if (typeof navigator !== 'undefined' && !navigator.onLine) {
+              await enqueue({
+                id: newId(),
+                kind: 'handover.release',
+                payload: { invoice_id: invoice.id },
+              });
+              router.push(`/worker/billing/${invoice.id}?settled=paid`);
+              return;
+            }
+            await releaseAction(formData);
+          }}
+          className="handover__release"
+        >
           <input type="hidden" name="invoice_id" value={invoice.id} />
           {releaseState?.error && <p className="form-error">{releaseState.error}</p>}
           <ReleaseButton />
@@ -203,7 +260,7 @@ export default function HandoverFlow({ invoice, outstandingCents }) {
   }
 
   return (
-    <form action={action} className="handover">
+    <form action={submit} className="handover">
       <KeepAwake />
       <input type="hidden" name="invoice_id" value={invoice.id} />
       <input type="hidden" name="signature" value={signature} />
@@ -219,13 +276,10 @@ export default function HandoverFlow({ invoice, outstandingCents }) {
       {state?.error && <p className="form-error">{state.error}</p>}
 
       {!online && (
-        <p className="form-error">
-          <strong>No connection — a payment can&apos;t be taken right now.</strong>
-          <br />
-          Take the payment on the card machine or in cash as usual, write the
-          amount down, and record it here when the Wi-Fi is back. This is
-          deliberate: a payment saved offline and sent twice would charge the
-          customer twice.
+        <p className="form-note">
+          <strong>No connection</strong> — this will be saved on the tablet and
+          sent the moment the Wi-Fi is back. Take the payment on the card
+          machine or in cash exactly as usual first.
         </p>
       )}
 
@@ -283,7 +337,7 @@ export default function HandoverFlow({ invoice, outstandingCents }) {
         was paid.
       </p>
 
-      <Finish disabled={!signature || !online} />
+      <Finish disabled={!signature} />
     </form>
   );
 }

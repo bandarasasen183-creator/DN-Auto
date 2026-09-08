@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/auth/session';
 import { getTerminal } from '@/lib/payments/terminal';
+import { recordHandover } from '@/lib/handover';
 import { discountFor } from '@/lib/promotions';
 import { BUSINESS } from '@/lib/business';
 import { sendEmail, EmailNotConfiguredError } from '@/lib/email';
@@ -467,48 +468,18 @@ export async function completeHandover(_prevState, formData) {
   const supabase = createClient();
 
   const invoiceId = String(formData.get('invoice_id') ?? '');
-  const method = String(formData.get('method') ?? 'cash');
-  const rupees = Number(formData.get('amount_lkr') ?? 0);
-  const signature = String(formData.get('signature') ?? '');
-  const signedName = String(formData.get('signed_name') ?? '').trim() || null;
-  const reference = String(formData.get('provider_reference') ?? '').trim() || null;
-
-  if (!Number.isFinite(rupees) || rupees <= 0) return { error: 'Enter what was paid.' };
-  if (!signature.startsWith('data:image/png')) {
-    return { error: 'Ask the customer to sign before finishing.' };
-  }
-
-  const { data: invoice } = await supabase
-    .from('invoices')
-    .select('id, total_cents, paid_cents')
-    .eq('id', invoiceId)
-    .maybeSingle();
-
-  if (!invoice) return { error: 'That bill no longer exists.' };
-
-  const { error: payError } = await supabase.from('payments').insert({
-    invoice_id: invoice.id,
-    provider: method,
-    status: 'paid',
-    amount_cents: Math.round(rupees * 100),
-    provider_reference: reference,
-    paid_at: new Date().toISOString(),
+  const result = await recordHandover(supabase, {
+    invoiceId,
+    method: String(formData.get('method') ?? 'cash'),
+    amountCents: Number(formData.get('amount_lkr') ?? 0) * 100,
+    signature: String(formData.get('signature') ?? ''),
+    signedName: String(formData.get('signed_name') ?? '').trim() || null,
+    reference: String(formData.get('provider_reference') ?? '').trim() || null,
   });
 
-  if (payError) return { error: payError.message };
+  if (result.error) return result;
 
-  const { error } = await supabase
-    .from('invoices')
-    .update({
-      signature_png: signature,
-      signed_name: signedName,
-      signed_at: new Date().toISOString(),
-    })
-    .eq('id', invoice.id);
-
-  if (error) return { error: error.message };
-
-  revalidatePath(`/worker/billing/${invoice.id}`);
+  revalidatePath(`/worker/billing/${invoiceId}`);
   return { success: true, signedBy: profile.full_name ?? null };
 }
 

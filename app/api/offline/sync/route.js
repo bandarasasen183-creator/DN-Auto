@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getSessionUser } from '@/lib/auth/session';
 import { formatPlate } from '@/lib/service-history';
 import { NEXT_STATUS } from '@/lib/tickets';
+import { recordHandover } from '@/lib/handover';
 
 /**
  * Replays one action a tablet took while it had no connection.
@@ -15,7 +16,7 @@ import { NEXT_STATUS } from '@/lib/tickets';
  */
 export const dynamic = 'force-dynamic';
 
-const KINDS = ['ticket.open', 'ticket.move', 'ticket.update'];
+const KINDS = ['ticket.open', 'ticket.move', 'ticket.update', 'handover.complete', 'handover.release'];
 
 export async function POST(request) {
   const session = await getSessionUser();
@@ -107,6 +108,39 @@ export async function POST(request) {
         .from('tickets')
         .update({ status: payload.status })
         .eq('id', ticket.id);
+
+      if (error) throw error;
+      return Response.json({ ok: true });
+    }
+
+    if (kind === 'handover.complete') {
+      // The action's own id is what makes this idempotent — see
+      // lib/handover.js. It is not the payment's primary key by
+      // coincidence; it is deliberately the same value the tablet
+      // generated before it ever left the device.
+      const result = await recordHandover(supabase, {
+        invoiceId: payload?.invoice_id,
+        method: payload?.method ?? 'cash',
+        amountCents: Number(payload?.amount_cents ?? 0),
+        signature: payload?.signature ?? '',
+        signedName: payload?.signed_name ?? null,
+        reference: payload?.reference ?? null,
+        clientId: id,
+      });
+
+      if (result.error) return Response.json({ error: result.error }, { status: 400 });
+      return Response.json({ ok: true, duplicate: Boolean(result.duplicate) });
+    }
+
+    if (kind === 'handover.release') {
+      // Idempotent by nature — setting the same "handed back" timestamp
+      // and person twice changes nothing the first write didn't already
+      // do, so this needs no client id to be safe against a retry.
+      const { error } = await supabase
+        .from('invoices')
+        .update({ handed_back_at: new Date().toISOString(), handed_back_by: profile.id })
+        .eq('id', payload?.invoice_id)
+        .is('handed_back_at', null);
 
       if (error) throw error;
       return Response.json({ ok: true });

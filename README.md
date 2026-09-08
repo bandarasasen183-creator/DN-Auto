@@ -178,13 +178,19 @@ Writes are the hard part, and the split is deliberate:
 | | Offline |
 |---|---|
 | Open a ticket, move one along, edit its details | **Queued.** A duplicate ticket is visible on the board and takes ten seconds to cancel |
-| Take a payment, raise an invoice, issue a refund | **Refused, with a clear message** |
+| Record a handover — how a bill was paid, the signature | **Queued** |
+| Raise a new invoice, issue a refund, make a promo code | **Refused, with a clear message** |
 
-Money never goes in the queue. A payment replayed on a flaky connection charges
-somebody twice; an invoice number allocated on two tablets at once collides; a
-refund replayed is money gone. No retry logic is worth that, so the handover
-screen says plainly that it needs a connection rather than pretending to work
-and failing later.
+The line is not "does this involve money" — it's "does this app move money".
+It never does: WEBXPAY have confirmed their terminal has no API, so
+*completing* a handover only **records** that a payment happened on the
+machine or in cash and that the customer signed for it. A duplicate record
+from a retried sync is a ledger row to notice and ignore, not a customer
+charged twice — so it's safe to queue, guarded by the same client-generated
+id as everything else. What genuinely needs a connection is anything the
+server has to be the one to decide: a refund (checks what's actually left
+against the live total) and a counter promo code (checks the live usage
+count) both wait and say so.
 
 What makes the queue safe is idempotency, not luck. Every queued action carries
 a client-generated id — for a new ticket, that id *becomes* the ticket's
