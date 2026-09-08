@@ -20,17 +20,29 @@ export default function TicketForm({ bays, mechanics, bookings, preselectedBooki
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [knownCars, setKnownCars] = useState([]);
+  const [selectedCar, setSelectedCar] = useState('');
+  const [customPlate, setCustomPlate] = useState('');
   
+  // Marketing preferences
+  const [serviceOptIn, setServiceOptIn] = useState(true);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
+
   // Final form state
   const [state, action] = useFormState(openTicket, {});
   const [queued, setQueued] = useState(null);
 
-  const handleNext = async (e) => {
+  const handleNext1 = async (e) => {
     e.preventDefault();
     if (!phone) return;
     const cars = await lookupCarsByPhone(phone);
     setKnownCars(cars);
     setStep(2);
+  };
+
+  const handleNext2 = (e) => {
+    e.preventDefault();
+    if (!selectedCar && !customPlate) return;
+    setStep(3);
   };
 
   async function submit(formData) {
@@ -88,11 +100,15 @@ export default function TicketForm({ bays, mechanics, bookings, preselectedBooki
           <div style={{ background: 'var(--brand)', color: 'white', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
             {step}
           </div>
-          <h2 style={{ margin: '0 0 0 1rem' }}>{step === 1 ? 'Customer details' : 'Vehicle & Complaint'}</h2>
+          <h2 style={{ margin: '0 0 0 1rem' }}>
+            {step === 1 && 'Customer details'}
+            {step === 2 && 'Vehicle'}
+            {step === 3 && 'Complaint'}
+          </h2>
         </div>
 
-        {step === 1 ? (
-          <form onSubmit={handleNext} className="stack" style={{ '--gap': '1.5rem' }}>
+        {step === 1 && (
+          <form onSubmit={handleNext1} className="stack" style={{ '--gap': '1.5rem' }}>
             <div className="grid" style={{ gridTemplateColumns: '1fr' }}>
               <label className="field">
                 <span>Customer Name (optional)</span>
@@ -119,63 +135,92 @@ export default function TicketForm({ bays, mechanics, bookings, preselectedBooki
             
             <button type="submit" className="btn btn--lg" style={{ width: '100%' }}>Next <Icon name="arrowRight" size={16} /></button>
           </form>
-        ) : (
-          <form action={submit} className="stack" style={{ '--gap': '1.5rem' }}>
-            {state?.error && <p className="form-error">{state.error}</p>}
-            {queued?.error && <p className="form-error">{queued.error}</p>}
+        )}
 
-            {/* Hidden fields carried over from Step 1 */}
-            <input type="hidden" name="customer_name" value={name} />
-            <input type="hidden" name="customer_phone" value={phone} />
-
-            <div className="stack" style={{ '--gap': '0.5rem' }}>
-              <label className="checkbox">
-                <input type="checkbox" name="service_updates_opt_in" defaultChecked value="yes" />
-                <span>Send me warranty and service reminders about my vehicle</span>
-              </label>
-              <label className="checkbox">
-                <input type="checkbox" name="marketing_opt_in" value="yes" />
-                <span>Send me occasional offers from DN Auto</span>
-              </label>
-            </div>
-
-            <hr style={{ border: 'none', borderBottom: '1px solid var(--surface-sunken)', margin: '0' }} />
-
-            <label className="field">
-              <span>Vehicle Registration</span>
+        {step === 2 && (
+          <form onSubmit={handleNext2} className="stack" style={{ '--gap': '1.5rem' }}>
+            <div className="field">
+              <span>Select Vehicle</span>
               {knownCars.length > 0 ? (
-                <div style={{ position: 'relative' }}>
-                  <input 
-                    className="input" 
-                    name="registration" 
-                    placeholder="CAB-1234" 
-                    style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }} 
-                    list="known-cars"
-                    autoComplete="off"
-                    required 
-                  />
-                  <datalist id="known-cars">
-                    {knownCars.map(c => (
-                      <option key={c.registration} value={c.registration}>
-                        {c.make} {c.model}
-                      </option>
-                    ))}
-                  </datalist>
-                  <p className="small muted" style={{ marginTop: '0.5rem' }}>
-                    We found cars linked to this phone number. Select one or type a new plate.
-                  </p>
+                <div className="stack" style={{ '--gap': '0.75rem' }}>
+                  {knownCars.map(c => (
+                    <button
+                      type="button"
+                      key={c.registration}
+                      onClick={() => { setSelectedCar(c.registration); setCustomPlate(''); }}
+                      style={{
+                        padding: '1rem',
+                        borderRadius: '12px',
+                        border: selectedCar === c.registration ? '2px solid #eab308' : '1px solid var(--surface-sunken)',
+                        backgroundColor: selectedCar === c.registration ? '#fefce8' : '#f4f4f5',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      <strong style={{ display: 'block', fontSize: '1.2rem', marginBottom: '4px' }}>{c.registration}</strong>
+                      <span className="small muted">{c.make} {c.model}</span>
+                    </button>
+                  ))}
+                  
+                  <div style={{ marginTop: '0.5rem', borderTop: '1px solid var(--surface-sunken)', paddingTop: '1rem' }}>
+                    <span className="small muted" style={{ display: 'block', marginBottom: '0.5rem' }}>Or enter a different plate:</span>
+                    <input 
+                      className="input" 
+                      value={customPlate}
+                      onChange={(e) => { setCustomPlate(e.target.value); setSelectedCar(''); }}
+                      placeholder="CAB-1234" 
+                      style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }} 
+                      autoComplete="off"
+                    />
+                  </div>
                 </div>
               ) : (
                 <input 
                   className="input" 
-                  name="registration" 
+                  value={customPlate}
+                  onChange={(e) => setCustomPlate(e.target.value)}
                   placeholder="CAB-1234" 
                   style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }} 
                   autoComplete="off"
+                  autoFocus
                   required 
                 />
               )}
-            </label>
+            </div>
+
+            <hr style={{ border: 'none', borderBottom: '1px solid var(--surface-sunken)', margin: '0' }} />
+
+            <div className="stack" style={{ '--gap': '0.75rem' }}>
+              <label className="checkbox">
+                <input type="checkbox" checked={serviceOptIn} onChange={e => setServiceOptIn(e.target.checked)} />
+                <span style={{ whiteSpace: 'nowrap' }}>Send me warranty & service reminders</span>
+              </label>
+              <label className="checkbox">
+                <input type="checkbox" checked={marketingOptIn} onChange={e => setMarketingOptIn(e.target.checked)} />
+                <span style={{ whiteSpace: 'nowrap' }}>Send me occasional DN Auto offers</span>
+              </label>
+            </div>
+
+            <div className="row" style={{ marginTop: '1rem' }}>
+              <button type="button" className="btn btn--ghost" onClick={() => setStep(1)}>Back</button>
+              <div style={{ flex: 1 }}></div>
+              <button type="submit" className="btn btn--lg" disabled={!selectedCar && !customPlate}>Next <Icon name="arrowRight" size={16} /></button>
+            </div>
+          </form>
+        )}
+
+        {step === 3 && (
+          <form action={submit} className="stack" style={{ '--gap': '1.5rem' }}>
+            {state?.error && <p className="form-error">{state.error}</p>}
+            {queued?.error && <p className="form-error">{queued.error}</p>}
+
+            {/* Hidden fields carried over from Steps 1 & 2 */}
+            <input type="hidden" name="customer_name" value={name} />
+            <input type="hidden" name="customer_phone" value={phone} />
+            <input type="hidden" name="registration" value={selectedCar || customPlate} />
+            {serviceOptIn && <input type="hidden" name="service_updates_opt_in" value="yes" />}
+            {marketingOptIn && <input type="hidden" name="marketing_opt_in" value="yes" />}
 
             <label className="field">
               <span>What&apos;s wrong?</span>
@@ -184,6 +229,7 @@ export default function TicketForm({ bays, mechanics, bookings, preselectedBooki
                 name="complaint"
                 rows={3}
                 placeholder="Makes a grinding noise going round left corners. Started last week."
+                autoFocus
                 required
               />
             </label>
@@ -198,7 +244,7 @@ export default function TicketForm({ bays, mechanics, bookings, preselectedBooki
             </label>
 
             <div className="row" style={{ marginTop: '1rem' }}>
-              <button type="button" className="btn btn--ghost" onClick={() => setStep(1)}>Back</button>
+              <button type="button" className="btn btn--ghost" onClick={() => setStep(2)}>Back</button>
               <div style={{ flex: 1 }}></div>
               <Submit label="Open the ticket" />
             </div>
