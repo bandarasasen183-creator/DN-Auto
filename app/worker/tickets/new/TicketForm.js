@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import Icon from '@/components/Icon';
 import { openTicket } from '../actions';
+import { enqueue, newId } from '@/lib/offline/queue';
 
 function Submit() {
   const { pending } = useFormStatus();
@@ -26,13 +27,82 @@ export default function TicketForm({ bays, mechanics, bookings, preselectedBooki
   const [state, action] = useFormState(openTicket, {});
   const [bookingId, setBookingId] = useState(preselectedBooking || '');
   const [promise, setPromise] = useState(false);
+  const [queued, setQueued] = useState(null);
 
   const booking = bookings.find((b) => b.id === bookingId);
 
+  /**
+   * A car arriving is the one thing that absolutely cannot wait for the
+   * Wi-Fi — it is already in the car park. So offline the ticket is
+   * written to the tablet and sent later.
+   *
+   * The queue id becomes the ticket's id, which is what makes a retry
+   * safe: the same action arriving twice hits an existing primary key
+   * rather than creating a second ticket for one car.
+   */
+  async function submit(formData) {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      const registration = String(formData.get('registration') ?? '').trim().toUpperCase();
+      const complaint = String(formData.get('complaint') ?? '').trim();
+      if (!registration || !complaint) {
+        setQueued({ error: 'A plate and what is wrong — both are needed.' });
+        return;
+      }
+
+      const row = await enqueue({
+        id: newId(),
+        kind: 'ticket.open',
+        payload: {
+          registration,
+          complaint,
+          make: formData.get('make') || null,
+          model: formData.get('model') || null,
+          colour: formData.get('colour') || null,
+          customer_name: formData.get('customer_name') || null,
+          customer_phone: formData.get('customer_phone') || null,
+          keys_location: formData.get('keys_location') || null,
+          assigned_name: formData.get('assigned_name') || null,
+          notes: formData.get('notes') || null,
+          bay_id: formData.get('bay_id') || null,
+          // The moment the car actually arrived, not when the Wi-Fi came
+          // back — otherwise "how long has that been here?" lies.
+          opened_at: new Date().toISOString(),
+        },
+      });
+
+      setQueued({ registration, id: row.id });
+      return;
+    }
+
+    await action(formData);
+  }
+
+  if (queued?.registration) {
+    return (
+      <div className="card rise center" style={{ maxWidth: '32rem' }}>
+        <div className="tick"><Icon name="check" size={28} /></div>
+        <h3>Ticket saved on this tablet</h3>
+        <p className="muted">
+          {queued.registration} is booked in. There&apos;s no connection right now,
+          so it will appear on the board — for everyone — as soon as the Wi-Fi
+          is back.
+        </p>
+        <p className="small muted">
+          Nothing is lost if the tablet is closed or the battery goes; it&apos;s
+          written to the device, not held in memory.
+        </p>
+        <button type="button" className="btn" onClick={() => setQueued(null)}>
+          Book another car in
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <form action={action} className="grid" style={{ gridTemplateColumns: 'minmax(0, 2fr) minmax(280px, 1fr)', alignItems: 'start' }}>
+    <form action={submit} className="grid" style={{ gridTemplateColumns: 'minmax(0, 2fr) minmax(280px, 1fr)', alignItems: 'start' }}>
       <div className="card rise">
         {state?.error && <p className="form-error">{state.error}</p>}
+        {queued?.error && <p className="form-error">{queued.error}</p>}
 
         {bookings.length > 0 && (
           <>

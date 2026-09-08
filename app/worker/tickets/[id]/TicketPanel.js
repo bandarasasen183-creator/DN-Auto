@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import Icon from '@/components/Icon';
 import { moveTicket, updateTicket } from '../actions';
 import { NEXT_STATUS, TICKET_STATUS } from '@/lib/tickets';
+import { enqueue } from '@/lib/offline/queue';
 
 const VERB = {
   in_progress: { label: 'Start work', icon: 'wrench' },
@@ -32,16 +34,46 @@ function Move({ status, primary }) {
 
 export function StatusActions({ ticket }) {
   const [state, action] = useFormState(moveTicket, {});
+  const [queued, setQueued] = useState(null);
   const moves = NEXT_STATUS[ticket.status] ?? [];
 
   if (moves.length === 0) {
     return <p className="small muted">This ticket is closed.</p>;
   }
 
+  /**
+   * Offline, the move is written to the tablet and sent later. Moving a
+   * ticket along is exactly the kind of thing that is safe to queue: it
+   * sets an absolute status rather than a delta, so arriving twice does
+   * nothing the first arrival didn't.
+   */
+  async function submit(formData) {
+    const status = String(formData.get('status') ?? '');
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      await enqueue({
+        kind: 'ticket.move',
+        payload: { ticket_id: ticket.id, status },
+      });
+      setQueued(status);
+      return;
+    }
+
+    setQueued(null);
+    await action(formData);
+  }
+
   return (
-    <form action={action} className="stack" style={{ '--gap': '0.6rem' }}>
+    <form action={submit} className="stack" style={{ '--gap': '0.6rem' }}>
       <input type="hidden" name="ticket_id" value={ticket.id} />
       {state?.error && <p className="form-error">{state.error}</p>}
+      {queued && (
+        <p className="form-note">
+          Saved on this tablet — it&apos;ll move to{' '}
+          <strong>{TICKET_STATUS[queued]?.label ?? queued}</strong> on the board
+          when the Wi-Fi is back.
+        </p>
+      )}
       {moves.map((status, i) => (
         <Move key={status} status={status} primary={i === 0} />
       ))}

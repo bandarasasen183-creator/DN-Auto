@@ -2747,3 +2747,37 @@ a, button, .pick, .slot, .cal__day { touch-action: manipulation; }
 .tkt--soon { border-color: rgb(245 165 36 / 0.5); box-shadow: inset 3px 0 0 var(--amber-500, #b45309); }
 
 .plate--sm { padding: 0.2rem 0.5rem; font-size: 0.9rem; border-width: 1px; }
+
+/* --- Connection state ----------------------------------------------------
+   The count matters more than the icon. "Offline" alone invites a mechanic
+   to assume their last three tickets went nowhere. */
+.netbar {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  padding: 0.7rem 1rem;
+  border-radius: 12px;
+  border: 1px solid;
+  animation: rise var(--dur-slow) var(--ease) both;
+}
+
+.netbar--off {
+  border-color: rgb(180 35 24 / 0.35);
+  background: rgb(180 35 24 / 0.07);
+  color: var(--danger, #b42318);
+}
+.netbar--sync {
+  border-color: rgb(245 165 36 / 0.4);
+  background: rgb(245 165 36 / 0.09);
+  color: var(--amber-600, #92400e);
+}
+.netbar--ok {
+  border-color: rgb(47 163 107 / 0.4);
+  background: rgb(47 163 107 / 0.09);
+  color: var(--ok, #2fa36b);
+}
+
+.netbar__note { flex-basis: 100%; opacity: 0.85; }
+.netbar .btn { margin-left: auto; }

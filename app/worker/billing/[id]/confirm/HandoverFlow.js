@@ -162,8 +162,25 @@ function ReleaseButton() {
 export default function HandoverFlow({ invoice, outstandingCents }) {
   const [method, setMethod] = useState('webxpay');
   const [signature, setSignature] = useState('');
+  const [online, setOnline] = useState(true);
   const [state, action] = useFormState(completeHandover, {});
   const [releaseState, releaseAction] = useFormState(releaseHandover, {});
+
+  // Money never goes in the offline queue. A payment replayed on a flaky
+  // connection charges somebody twice, and no amount of clever retry
+  // logic is worth that risk — so this screen says plainly that it needs
+  // a connection rather than pretending to work and failing later.
+  useEffect(() => {
+    setOnline(navigator.onLine);
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    return () => {
+      window.removeEventListener('online', on);
+      window.removeEventListener('offline', off);
+    };
+  }, []);
 
   // Once saved, the customer is looking at this. Nothing else is on screen.
   if (state?.success) {
@@ -200,6 +217,17 @@ export default function HandoverFlow({ invoice, outstandingCents }) {
       </header>
 
       {state?.error && <p className="form-error">{state.error}</p>}
+
+      {!online && (
+        <p className="form-error">
+          <strong>No connection — a payment can&apos;t be taken right now.</strong>
+          <br />
+          Take the payment on the card machine or in cash as usual, write the
+          amount down, and record it here when the Wi-Fi is back. This is
+          deliberate: a payment saved offline and sent twice would charge the
+          customer twice.
+        </p>
+      )}
 
       <fieldset className="handover__methods">
         <legend className="small muted">How was this paid?</legend>
@@ -255,7 +283,7 @@ export default function HandoverFlow({ invoice, outstandingCents }) {
         was paid.
       </p>
 
-      <Finish disabled={!signature} />
+      <Finish disabled={!signature || !online} />
     </form>
   );
 }

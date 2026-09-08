@@ -161,6 +161,47 @@ ends up under a slightly different name to the ticket, after which neither can
 be found. Raising the bill closes the ticket's loop, and bookings are shown for
 **today only**, since a list going back weeks is noise at a counter.
 
+## Working without Wi-Fi
+
+The workshop's connection drops. When it does, a mechanic holding a tablet
+should still be able to see what's in the shop and get on with the job.
+
+The trick that keeps this small: the app is **server-rendered**, so the cached
+HTML of a page *is* the offline copy of its data. There is no second database
+on the tablet to fall out of step with the real one. Offline you see the last
+version of a page you actually visited, which is honest, and needs no sync
+logic at all. `public/sw.js` caches pages network-first, so online you always
+get the truth and the cache is only ever a fallback.
+
+Writes are the hard part, and the split is deliberate:
+
+| | Offline |
+|---|---|
+| Open a ticket, move one along, edit its details | **Queued.** A duplicate ticket is visible on the board and takes ten seconds to cancel |
+| Take a payment, raise an invoice, issue a refund | **Refused, with a clear message** |
+
+Money never goes in the queue. A payment replayed on a flaky connection charges
+somebody twice; an invoice number allocated on two tablets at once collides; a
+refund replayed is money gone. No retry logic is worth that, so the handover
+screen says plainly that it needs a connection rather than pretending to work
+and failing later.
+
+What makes the queue safe is idempotency, not luck. Every queued action carries
+a client-generated id — for a new ticket, that id *becomes* the ticket's
+primary key — and the server ignores one it has already seen. The queue can
+flush twice, or two tabs can flush at once, and the result is the same as
+flushing once. Actions go up oldest-first and stop at the first failure, since
+pushing a later one past a stuck earlier one is how a ticket ends up marked
+ready before it was ever started.
+
+A queued ticket records the time the car actually arrived, not the time the
+Wi-Fi came back — otherwise every ticket raised during an outage looks like it
+turned up at once, and "how long has that been here?" starts lying.
+
+If a move is no longer legal by the time it syncs — somebody at the desk moved
+the ticket on while the tablet was offline — the desk wins, because the desk
+saw the car more recently than the queue did.
+
 ## Billing, handover and the card terminal
 
 The team raises bills at **Worker → Billing**: against a job or for a walk-in

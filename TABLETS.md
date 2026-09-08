@@ -162,7 +162,9 @@ by bay. Write the name on the back of the bumper case in marker.
 | Task | Where |
 |---|---|
 | Raise a bill | Billing → **New bill** |
-| Bill a walk-in with no account | New bill → leave the job as *Walk-in* |
+| Book a car in | **In the workshop** → *Car arrived* |
+| See what's in the shop | **In the workshop** |
+| Bill a car that's here | New bill → pick it under *A car in the workshop* |
 | Take a card payment | Open the bill → **Pay now on the machine** |
 | Take cash | Open the bill → **Cash / transfer** |
 | Refund | Open the bill → **Refund** beside the payment |
@@ -178,10 +180,12 @@ number to reconcile against the till and the card machine's own report.
 - **It does not need to talk to the card machine.** Right now the tablet shows
   the amount to key into the machine. If WEBXPAY's terminal turns out to have
   an API, the amount goes across automatically and nothing else changes.
-- **It needs a working connection.** Bills are written to the database as they
-  are raised — there is no offline queue. If the Wi-Fi drops mid-bill, write
-  the job down and enter it when the connection is back. If the workshop's
-  connection is unreliable, say so and offline drafts become worth building.
+- **Tickets work without Wi-Fi; payments do not.** Opening a ticket or moving
+  one along is saved on the tablet and sent the moment the connection is back —
+  the bar at the top of the screen says how many changes are waiting. Taking a
+  payment needs a connection, deliberately: a payment saved offline and sent
+  twice would charge the customer twice. Take it on the card machine as usual,
+  write the amount down, and record it when the Wi-Fi returns.
 
 ## 8. If a tablet is lost or a mechanic leaves
 
