@@ -1,4 +1,5 @@
 import './globals.css';
+import FullscreenToggle from '@/components/FullscreenToggle';
 import { BUSINESS } from '@/lib/business';
 import { SITE_URL } from '@/lib/domains';
 
@@ -58,7 +59,10 @@ export default function RootLayout({ children }) {
           href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <FullscreenToggle />
+      </body>
     </html>
   );
 }
