@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Icon from '@/components/Icon';
 import { signOut } from '@/app/(auth)/actions';
 import { BUSINESS } from '@/lib/business';
+import FullscreenToggle from '@/components/FullscreenToggle';
 import NotificationBell from '@/components/NotificationBell';
 import MobileNav from '@/components/MobileNav';
 import AppUpdate from '@/components/AppUpdate';
@@ -25,7 +26,7 @@ export default function PortalShell({ profile, nav, current, title, subtitle, ac
             alt="DN Auto Logo"
             width={32}
             height={32}
-            style={{ borderRadius: 8, objectFit: 'contain' }}
+            style={{ borderRadius: 8, objectFit: 'contain', background: '#fff', padding: '4px' }}
             priority
           />
           <span style={{ fontSize: '1.25rem' }}>{BUSINESS.shortName.toUpperCase()}</span>
@@ -48,6 +49,7 @@ export default function PortalShell({ profile, nav, current, title, subtitle, ac
 
         <div style={{ marginTop: 'auto', display: 'grid', gap: '0.75rem' }}>
           <div className="small" style={{ color: 'var(--steel-300)' }}>
+            <FullscreenToggle className="btn btn--ghost small hide-on-print" style={{ width: '100%', marginBottom: '0.5rem', justifyContent: 'flex-start', color: 'var(--steel-200)' }} />
             <strong style={{ display: 'block', color: '#fff' }}>{profile.full_name}</strong>
             <span style={{ textTransform: 'capitalize' }}>{profile.role}</span>
           </div>
