@@ -1,5 +1,4 @@
 import './globals.css';
-import FullscreenToggle from '@/components/FullscreenToggle';
 import { BUSINESS } from '@/lib/business';
 import { SITE_URL } from '@/lib/domains';
 
@@ -61,7 +60,6 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         {children}
-        <FullscreenToggle />
       </body>
     </html>
   );

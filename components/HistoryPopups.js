@@ -89,11 +89,11 @@ export default function HistoryPopups() {
             <div className="grid cols-2">
               <div>
                 <p className="muted small" style={{ margin: 0 }}>Vehicle</p>
-                <strong>{data.registration}</strong> {data.make} {data.model}
+                <strong>{data.registration}</strong>{data.vehicle_note ? ` · ${data.vehicle_note}` : ''}
               </div>
               <div style={{ textAlign: 'right' }}>
                 <p className="muted small" style={{ margin: 0 }}>Mechanic</p>
-                <strong>{data.mechanic?.full_name || 'Unknown'}</strong>
+                <strong>{data.mechanic?.full_name || data.performed_by_name || 'Workshop'}</strong>
               </div>
             </div>
 
@@ -111,7 +111,7 @@ export default function HistoryPopups() {
                           </span>
                         )}
                       </span>
-                      <strong>{formatLKR((item.price_cents * item.quantity) || 0)}</strong>
+                      <strong>{formatLKR((item.unit_price_cents * item.quantity) || 0)}</strong>
                     </div>
                   </li>
                 ))}
@@ -130,7 +130,12 @@ export default function HistoryPopups() {
             </div>
           </div>
         ) : (
-          <p className="form-error">Could not load invoice.</p>
+          <div className="stack" style={{ textAlign: 'center', padding: '1rem 0' }}>
+            <p className="form-error" style={{ marginBottom: '1rem' }}>Could not load invoice details.</p>
+            <div>
+              <button className="btn btn--ghost" onClick={close}>Close</button>
+            </div>
+          </div>
         )}
       </div>
     </div>
