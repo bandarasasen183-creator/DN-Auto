@@ -30,6 +30,8 @@ export default async function BookPage() {
       current="/portal/book"
       title="Book a service"
       subtitle="Five short steps, Sunday appointments. You can change anything before you confirm."
+      backHref="/portal/bookings"
+      backLabel="Bookings"
     >
       <BookingWizard services={services ?? []} vehicles={vehicles ?? []} />
     </PortalShell>

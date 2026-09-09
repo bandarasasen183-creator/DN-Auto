@@ -70,6 +70,8 @@ export default async function InvoicePage({ params, searchParams }) {
           {outstanding <= 0 ? 'Settled' : `${formatLKR(outstanding)} due`}
         </span>
       }
+      backHref="/worker/billing"
+      backLabel="Billing"
     >
       {settled === 'paid' && (
         <p className="form-note rise">Payment recorded. Print the receipt for the customer.</p>

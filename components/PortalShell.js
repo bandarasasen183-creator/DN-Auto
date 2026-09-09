@@ -13,7 +13,17 @@ import OfflineStatus from '@/components/OfflineStatus';
  * The frame every signed-in page sits in. Navigation is passed in per portal
  * so customer / worker / admin never see each other's links.
  */
-export default function PortalShell({ profile, nav, current, title, subtitle, actions, children }) {
+export default function PortalShell({
+  profile,
+  nav,
+  current,
+  title,
+  subtitle,
+  actions,
+  children,
+  backHref,
+  backLabel = 'Back',
+}) {
   return (
     <div className="shell">
       <MobileNav nav={nav} current={current} profile={profile} />
@@ -39,6 +49,7 @@ export default function PortalShell({ profile, nav, current, title, subtitle, ac
                 href={item.href}
                 className="navlink"
                 aria-current={item.href === current ? 'page' : undefined}
+                data-active={current === item.href}
               >
                 <Icon name={item.icon} size={18} />
                 {item.label}
@@ -70,6 +81,29 @@ export default function PortalShell({ profile, nav, current, title, subtitle, ac
 
         <header className="shell__head rise">
           <div>
+            {backHref && (
+              <div style={{ marginBottom: '0.6rem' }}>
+                <Link
+                  href={backHref}
+                  className="btn btn--ghost small hide-on-print"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    color: 'var(--steel-300)',
+                    padding: '0.35rem 0.75rem',
+                    fontWeight: 600,
+                    borderRadius: '6px',
+                    background: 'var(--surface-sunken)',
+                    border: '1px solid var(--steel-200)',
+                    width: 'fit-content'
+                  }}
+                >
+                  <Icon name="chevronLeft" size={16} />
+                  <span>{backLabel}</span>
+                </Link>
+              </div>
+            )}
             <h2 style={{ marginBottom: subtitle ? '0.2rem' : 0 }}>{title}</h2>
             {subtitle && <p className="muted" style={{ margin: 0 }}>{subtitle}</p>}
           </div>

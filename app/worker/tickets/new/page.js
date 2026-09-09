@@ -36,6 +36,8 @@ export default async function NewTicketPage({ searchParams }) {
       current="/worker/tickets"
       title="Car arrived"
       subtitle="Booked or not — this is what opens the job."
+      backHref="/worker/tickets"
+      backLabel="Tickets"
     >
       <TicketForm
         mechanics={mechanics ?? []}

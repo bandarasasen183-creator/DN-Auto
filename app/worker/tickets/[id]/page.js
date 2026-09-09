@@ -64,12 +64,9 @@ export default async function TicketPage({ params }) {
       title={`${ticket.registration} · ${ticket.number}`}
       subtitle={`${[ticket.colour, ticket.make, ticket.model].filter(Boolean).join(' ') || 'Vehicle'} · here ${elapsed(ticket.opened_at)}`}
       actions={<span className={`pill ${status.pill}`}>{status.label}</span>}
+      backHref="/worker/tickets"
+      backLabel="Tickets"
     >
-      <p>
-        <Link href="/worker/tickets" className="btn btn--ghost small">
-          <Icon name="chevronLeft" size={14} /> The board
-        </Link>
-      </p>
 
       {promise === 'late' && (
         <p className="form-error rise">

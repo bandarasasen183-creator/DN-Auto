@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useFormState, useFormStatus } from 'react-dom';
 import Icon from '@/components/Icon';
 import KeepAwake from '@/components/KeepAwake';
@@ -284,6 +285,27 @@ export default function HandoverFlow({ invoice, outstandingCents }) {
       <KeepAwake />
       <input type="hidden" name="invoice_id" value={invoice.id} />
       <input type="hidden" name="signature" value={signature} />
+
+      <div style={{ marginBottom: '0.5rem' }}>
+        <Link
+          href={`/worker/billing/${invoice.id}`}
+          className="btn btn--ghost small"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            color: 'var(--steel-300)',
+            background: 'var(--surface-sunken)',
+            padding: '0.35rem 0.75rem',
+            borderRadius: '6px',
+            textDecoration: 'none',
+            fontWeight: 600,
+          }}
+        >
+          <Icon name="chevronLeft" size={16} />
+          <span>Back to bill</span>
+        </Link>
+      </div>
 
       <header className="handover__head">
         <div>

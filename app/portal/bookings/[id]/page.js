@@ -58,6 +58,8 @@ export default async function BookingDetail({ params }) {
       title={booking.services?.name ?? 'Booking'}
       subtitle={`${booking.reference} · ${new Date(booking.scheduled_for).toLocaleString('en-LK', { dateStyle: 'full', timeStyle: 'short' })}`}
       actions={<StatusPill status={booking.status} />}
+      backHref="/portal/bookings"
+      backLabel="Bookings"
     >
       <div className="grid" style={{ gridTemplateColumns: 'minmax(0, 2fr) minmax(260px, 1fr)', alignItems: 'start' }}>
         <div className="stack" style={{ '--gap': '1.5rem' }}>

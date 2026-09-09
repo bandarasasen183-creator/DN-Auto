@@ -62,6 +62,8 @@ export default async function AdminBookingDetail({ params }) {
       title={`${booking.reference} · ${booking.services?.name ?? 'Booking'}`}
       subtitle={new Date(booking.scheduled_for).toLocaleString('en-LK', { dateStyle: 'full', timeStyle: 'short' })}
       actions={<StatusPill status={booking.status} />}
+      backHref="/admin/bookings"
+      backLabel="Bookings"
     >
       <div className="grid" style={{ gridTemplateColumns: 'minmax(0, 2fr) minmax(300px, 1fr)', alignItems: 'start' }}>
         <div className="stack" style={{ '--gap': '1.5rem' }}>

@@ -53,6 +53,8 @@ export default async function NewInvoicePage({ searchParams }) {
       current="/worker/billing"
       title="New bill"
       subtitle="Against a job, or for a walk-in with no account."
+      backHref="/worker/billing"
+      backLabel="Billing"
     >
       <InvoiceBuilder
         services={services ?? []}
