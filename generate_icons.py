@@ -1,6 +1,6 @@
-from PIL import Image
+from PIL import Image, ImageDraw
 
-def make_icon(source_path, output_path, size, bg_color=None, padding=20):
+def make_icon(source_path, output_path, size, padding=20):
     src = Image.open(source_path).convert("RGBA")
     
     # Calculate aspect ratio
@@ -22,31 +22,22 @@ def make_icon(source_path, output_path, size, bg_color=None, padding=20):
         
     resized = src.resize((new_w, new_h), Image.Resampling.LANCZOS)
     
-    # Create canvas
-    if bg_color:
-        canvas = Image.new("RGBA", size, bg_color)
-    else:
-        canvas = Image.new("RGBA", size, (0, 0, 0, 0))
+    # Create white canvas
+    canvas = Image.new("RGB", size, (255, 255, 255))
         
     # Paste centered
     offset_x = (size[0] - new_w) // 2
     offset_y = (size[1] - new_h) // 2
     
-    if bg_color:
-        canvas.paste(resized, (offset_x, offset_y), resized)
-        # Convert to RGB if it has a solid background
-        canvas = canvas.convert("RGB")
-    else:
-        canvas.paste(resized, (offset_x, offset_y))
+    # Paste using alpha channel as mask
+    canvas.paste(resized, (offset_x, offset_y), resized)
         
     canvas.save(output_path, "PNG")
 
-# Generate transparent icons
+# Generate all icons as solid white squares so the dark logo is visible!
 make_icon("public/logo-small.png", "public/icon-512.png", (512, 512), padding=40)
-make_icon("public/logo-small.png", "public/icon-192.png", (192, 192), padding=15)
+make_icon("public/logo-small.png", "public/icon-192.png", (192, 192), padding=20)
+make_icon("public/logo-small.png", "public/icon-maskable-512.png", (512, 512), padding=60)
+make_icon("public/logo-small.png", "public/apple-touch-icon.png", (180, 180), padding=20)
 
-# Generate solid background icons (Apple touch and Maskable)
-make_icon("public/logo-small.png", "public/icon-maskable-512.png", (512, 512), bg_color=(255, 255, 255), padding=60)
-make_icon("public/logo-small.png", "public/apple-touch-icon.png", (180, 180), bg_color=(255, 255, 255), padding=20)
-
-print("Icons generated!")
+print("Solid white icons generated!")

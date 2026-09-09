@@ -3,7 +3,6 @@ import Link from 'next/link';
 import Icon from '@/components/Icon';
 import { signOut } from '@/app/(auth)/actions';
 import { BUSINESS } from '@/lib/business';
-import DnAssist from '@/components/assistant/DnAssist';
 import NotificationBell from '@/components/NotificationBell';
 import MobileNav from '@/components/MobileNav';
 import AppUpdate from '@/components/AppUpdate';
@@ -79,8 +78,6 @@ export default function PortalShell({ profile, nav, current, title, subtitle, ac
         </header>
         {children}
       </main>
-
-      <DnAssist signedIn />
     </div>
   );
 }

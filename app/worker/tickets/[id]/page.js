@@ -85,11 +85,12 @@ export default async function TicketPage({ params }) {
             {liveWarranties.length} part{liveWarranties.length === 1 ? '' : 's'} on this
             car still under warranty.
           </strong>
-          <ul className="small" style={{ margin: '0.5rem 0 0', paddingLeft: '1.1rem' }}>
+          <ul className="small" style={{ margin: '0.5rem 0 0', paddingLeft: '1.1rem', display: 'grid', gap: '0.75rem' }}>
             {liveWarranties.map((w) => (
               <li key={w.id}>
                 {w.description} — until{' '}
                 {new Date(w.expires_on).toLocaleDateString('en-LK', { dateStyle: 'long' })}
+                <br/>
                 <Link href={`?popup=invoice&popupId=${w.invoice_id}`} scroll={false} className="muted" style={{ textDecoration: 'underline' }}>
                   · {w.number}
                 </Link>
@@ -124,7 +125,8 @@ export default async function TicketPage({ params }) {
           <section className="card rise rise-1">
             <h3 style={{ marginTop: 0 }}>Timeline</h3>
             <ol className="timeline">
-              <li>
+              <li className="timeline__item">
+                <div className="timeline__dot" />
                 <strong>Arrived</strong>
                 <span className="small muted">
                   {stamp(ticket.opened_at)}
@@ -132,7 +134,8 @@ export default async function TicketPage({ params }) {
                 </span>
               </li>
               {ticket.started_at && (
-                <li>
+                <li className="timeline__item">
+                  <div className="timeline__dot" />
                   <strong>Work started</strong>
                   <span className="small muted">
                     {stamp(ticket.started_at)}
@@ -142,7 +145,8 @@ export default async function TicketPage({ params }) {
                 </li>
               )}
               {ticket.ready_at && (
-                <li>
+                <li className="timeline__item">
+                  <div className="timeline__dot" />
                   <strong>Ready</strong>
                   <span className="small muted">
                     {stamp(ticket.ready_at)}
@@ -152,7 +156,8 @@ export default async function TicketPage({ params }) {
                 </li>
               )}
               {ticket.collected_at && (
-                <li>
+                <li className="timeline__item">
+                  <div className="timeline__dot" />
                   <strong>Collected</strong>
                   <span className="small muted">
                     {stamp(ticket.collected_at)}
@@ -170,7 +175,7 @@ export default async function TicketPage({ params }) {
           {previous.length > 0 && (
             <section className="card rise rise-2">
               <h3 style={{ marginTop: 0 }}>We&apos;ve seen this car before</h3>
-              <ul className="small" style={{ margin: 0, paddingLeft: '1.1rem', display: 'grid', gap: '0.5rem' }}>
+              <ul className="small" style={{ margin: 0, paddingLeft: '1.1rem', display: 'grid', gap: '1rem' }}>
                 {previous.slice(0, 6).map((invoice) => (
                   <li key={invoice.id}>
                     <Link href={`?popup=invoice&popupId=${invoice.id}`} scroll={false}>

@@ -13,7 +13,7 @@ export async function fetchInvoiceDetails(invoiceId) {
       id, number, created_at, customer_name, customer_phone,
       registration, make, model, total_cents,
       invoice_items(id, description, price_cents, quantity, warranty_months),
-      mechanic:profiles!invoices_performed_by_fkey(full_name)
+      mechanic:profiles!performed_by(full_name)
     `)
     .eq('id', invoiceId)
     .maybeSingle();

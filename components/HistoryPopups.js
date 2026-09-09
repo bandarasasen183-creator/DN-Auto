@@ -17,10 +17,12 @@ export default function HistoryPopups() {
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [closing, setClosing] = useState(false);
   
   useEffect(() => {
     async function load() {
       if (popupType === 'invoice' && popupId) {
+        setClosing(false);
         setLoading(true);
         const inv = await fetchInvoiceDetails(popupId);
         setData(inv);
@@ -32,9 +34,10 @@ export default function HistoryPopups() {
     load();
   }, [popupType, popupId]);
 
-  if (!popupType || !popupId) return null;
+  if (!popupType || !popupId || closing) return null;
 
   const close = () => {
+    setClosing(true);
     // Remove query params
     const params = new URLSearchParams(searchParams);
     params.delete('popup');
@@ -43,17 +46,24 @@ export default function HistoryPopups() {
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0, left: 0, right: 0, bottom: 0,
-      background: 'rgba(0,0,0,0.6)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 9999,
-      padding: '1rem'
-    }}>
-      <div className="card rise" style={{ width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
+    <div 
+      style={{
+        position: 'fixed',
+        top: 0, left: 0, right: 0, bottom: 0,
+        background: 'rgba(0,0,0,0.6)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999,
+        padding: '1rem'
+      }}
+      onClick={close}
+    >
+      <div 
+        className="card rise" 
+        style={{ width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="row" style={{ justifyContent: 'space-between', marginBottom: '1.5rem' }}>
           <h2 style={{ margin: 0 }}>Past Job Details</h2>
           <button className="btn btn--ghost small" onClick={close} style={{ padding: '0.5rem' }}>
