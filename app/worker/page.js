@@ -74,7 +74,7 @@ export default async function WorkerHome() {
               {activeTickets.map((t) => {
                 const isLate = promiseState(t) === 'late';
                 return (
-                  <Link key={t.id} href={`/worker/tickets/${t.id}`} className="row" style={{ justifyContent: 'space-between', padding: '0.5rem', background: 'var(--surface-sunken)', borderRadius: '6px' }}>
+                  <Link key={t.id} href={`/worker/tickets/${t.id}`} prefetch={true} className="row" style={{ justifyContent: 'space-between', padding: '0.5rem', background: 'var(--surface-sunken)', borderRadius: '6px' }}>
                     <div>
                       <strong style={{ color: isLate ? 'var(--red)' : 'inherit' }}>{t.registration}</strong>
                       <p className="small muted" style={{ margin: 0 }}>

@@ -19,7 +19,7 @@ function Card({ ticket }) {
 
   return (
     <li className={`tkt ${promise ? `tkt--${promise}` : ''}`}>
-      <Link href={`/worker/tickets/${ticket.id}`}>
+      <Link href={`/worker/tickets/${ticket.id}`} prefetch={true}>
         <div className="tkt__head">
           <span className="plate plate--sm">{ticket.registration}</span>
           <span className="small muted">{ticket.number}</span>

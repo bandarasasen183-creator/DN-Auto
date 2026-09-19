@@ -49,6 +49,7 @@ export default function MobileNav({ nav, current, profile }) {
                 <li key={item.href}>
                   <Link
                     href={item.href}
+                    prefetch={true}
                     className="navlink"
                     aria-current={item.href === current ? 'page' : undefined}
                     onClick={() => setOpen(false)}

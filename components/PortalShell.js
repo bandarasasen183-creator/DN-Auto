@@ -47,6 +47,7 @@ export default function PortalShell({
             <li key={item.href}>
               <Link
                 href={item.href}
+                prefetch={true}
                 className="navlink"
                 aria-current={item.href === current ? 'page' : undefined}
                 data-active={current === item.href}

@@ -1,4 +1,5 @@
 import './globals.css';
+import AppLauncher from '@/components/AppLauncher';
 import { BUSINESS } from '@/lib/business';
 import { SITE_URL } from '@/lib/domains';
 
@@ -59,6 +60,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
+        <AppLauncher />
         {children}
       </body>
     </html>
