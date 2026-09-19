@@ -19,22 +19,23 @@ export const dynamic = 'force-dynamic';
 const PACKAGE_ID = process.env.ANDROID_PACKAGE_ID || 'lk.dnauto.workshop';
 
 export function GET() {
-  const fingerprint = process.env.ANDROID_CERT_FINGERPRINT?.trim();
+  const envFingerprint = process.env.ANDROID_CERT_FINGERPRINT?.trim();
+  const fingerprints = [
+    'E4:7C:0F:72:89:B5:FA:39:57:B6:DA:BA:E1:18:48:FE:FC:C3:67:13:82:15:EA:AF:4B:DC:87:78:21:A0:FB:93',
+    '0B:C8:FE:69:15:EF:F7:7E:70:32:FB:FC:71:4E:7C:5A:8A:3C:0F:E4:16:63:34:4A:83:99:8D:BC:FC:48:CA:60',
+    envFingerprint,
+  ].filter(Boolean);
 
-  // No fingerprint means the APK hasn't been built yet. An empty list is the
-  // honest answer — better than vouching for a certificate that isn't ours.
-  const body = fingerprint
-    ? [
-        {
-          relation: ['delegate_permission/common.handle_all_urls'],
-          target: {
-            namespace: 'android_app',
-            package_name: PACKAGE_ID,
-            sha256_cert_fingerprints: [fingerprint],
-          },
-        },
-      ]
-    : [];
+  const body = [
+    {
+      relation: ['delegate_permission/common.handle_all_urls'],
+      target: {
+        namespace: 'android_app',
+        package_name: PACKAGE_ID,
+        sha256_cert_fingerprints: Array.from(new Set(fingerprints)),
+      },
+    },
+  ];
 
   return new Response(JSON.stringify(body, null, 2), {
     headers: {
